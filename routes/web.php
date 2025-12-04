@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\JournalController;
 
 Route::get('/', [FileController::class, 'uploadPage'])->name('upload.page');
+Route::get('/home', [DashboardController::class, 'index'])->name('home');
+
 Route::post('/upload', [FileController::class, 'upload'])->name('upload.process');
 
 Route::get('/parse/{id}', [FileController::class, 'parse'])->name('parse');
@@ -34,9 +37,9 @@ Route::post(
 //  Dashboard Klasifikasi
 // ===============================
 Route::get(
-    '/journal/dashboard',
-    [JournalController::class, 'dashboard']
-)->name('journal.dashboard');
+    '/journal',
+    [JournalController::class, 'index']
+)->name('journal.index');
 
 
 // ===============================

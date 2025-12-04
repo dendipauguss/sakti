@@ -6,10 +6,19 @@ use Illuminate\Http\Request;
 
 class JournalController extends Controller
 {
+    public function index()
+    {
+        return view('journal.index', [
+            'title' => 'Dashboard Journal'
+        ]);
+    }
+
     // =============== UPLOAD PAGE ===============
     public function uploadPage()
     {
-        return view('journal.upload');
+        return view('journal.upload', [
+            'title' => 'Upload Journal Report'
+        ]);
     }
 
     // =============== PROCESS FILE ===============
@@ -20,7 +29,10 @@ class JournalController extends Controller
         ]);
 
         $file = $req->file('file')->get();
-        $lines = explode("\n", $file);
+        $rawLines = explode("\n", $file);
+
+        // Clean html tag
+        $lines = array_map(fn($l) => trim(strip_tags($l)), $rawLines);
 
         $creditFacility = [];
         $marketExecution = [];
@@ -50,22 +62,42 @@ class JournalController extends Controller
                 ) {
 
                     // Ambil timestamp
-                    $time1 = $this->extractTime($line);
-                    $time2 = $this->extractTime($nextLine);
+                    $time1 = $this->extractTime($line);      // request
+                    $time2 = $this->extractTime($nextLine);  // confirm
+                    $info = $this->extractInfo($line); // dari request line
 
                     if ($time1 && $time2) {
-                        $diff = $time2->getTimestamp() - $time1->getTimestamp();
 
-                        if ($diff > 1) {
+                        // Konversi ke microsecond timestamp
+                        $ts1 = intval($time1->format("U")) * 1_000_000 + intval($time1->format("u"));
+                        $ts2 = intval($time2->format("U")) * 1_000_000 + intval($time2->format("u"));
+
+                        // Selisih dalam microdetik
+                        $diffMicro = $ts2 - $ts1;
+
+                        // Konversi ke detik float
+                        $diffSeconds = $diffMicro / 1_000_000;
+
+                        if ($diffSeconds > 1 && !empty($info['no_tiket'])) {
                             $marketExecution[] = [
                                 'request' => $line,
                                 'confirm' => $nextLine,
-                                'delay_seconds' => $diff
+
+                                'time1' => $ts1,
+                                'time2' => $ts2,
+                                'diff_micro' => $diffMicro,
+                                'delay_seconds' => $diffSeconds,
+                                'delay_formatted' => $this->formatDelay($diffSeconds),
+
+                                'tanggal' => $info['tanggal'],
+                                'no_akun' => $info['no_akun'],
+                                'no_tiket' => $info['no_tiket'],
                             ];
                         }
                     }
                 }
             }
+
 
             // ==================================================
             // 3) HARGA TIDAK SESUAI  (confirm close → close order)
@@ -110,6 +142,7 @@ class JournalController extends Controller
         }
 
         return view('journal.result', [
+            'title' => 'Hasil Parsing Journal',
             'parsed' => $lines,
             'creditFacility' => $creditFacility,
             'marketExecution' => $marketExecution,
@@ -132,12 +165,10 @@ class JournalController extends Controller
         return date_create_from_format('Y.m.d H:i:s.u', $m[1] . ' ' . $m[2]);
     }
 
-
     private function extractExecType($line)
     {
         return str_contains(strtolower($line), 'sell') ? 'sell' : 'buy';
     }
-
 
     private function extractBidAsk($line)
     {
@@ -149,12 +180,48 @@ class JournalController extends Controller
         return [$m[1], $m[2]];
     }
 
-
     private function extractCompletedPrice($line)
     {
         // Format: at 1785.68000 completed
         preg_match('/at ([\d\.]+) completed/', $line, $m);
 
         return $m ? $m[1] : null;
+    }
+
+    private function extractInfo($line)
+    {
+        $info = [
+            'tanggal' => null,
+            'no_akun' => null,
+            'no_tiket' => null,
+        ];
+
+        // Ambil tanggal
+        if (preg_match('/(\d{4}\.\d{2}\.\d{2})/', $line, $m)) {
+            $info['tanggal'] = $m[1];
+        }
+
+        // Ambil no_akun dari 'xxxxxx'
+        if (preg_match("/'(\d{5,})'/", $line, $m)) {
+            $info['no_akun'] = $m[1];
+        }
+
+        // Ambil no tiket dari #xxxxxxx
+        if (preg_match('/#(\d{5,})/', $line, $m)) {
+            $info['no_tiket'] = $m[1];
+        }
+
+        return $info;
+    }
+
+    private function formatDelay($secondsFloat)
+    {
+        $ms   = intval(($secondsFloat - floor($secondsFloat)) * 1000);
+        $secs = floor($secondsFloat);
+        $h    = floor($secs / 3600);
+        $m    = floor(($secs % 3600) / 60);
+        $s    = $secs % 60;
+
+        return sprintf("%02d:%02d:%02d.%03d", $h, $m, $s, $ms);
     }
 }
