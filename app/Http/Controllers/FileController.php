@@ -105,7 +105,7 @@ class FileController extends Controller
         // ambil list kategori unik untuk dropdown
         $categories = KlasifikasiData::select('category')->distinct()->pluck('category');
 
-        return view('dashboard', compact('items', 'categories'));
+        return view('home', compact('items', 'categories'));
     }
 
     // fungsi sederhana rule-based classifier (sesuaikan aturan)

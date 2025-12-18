@@ -4,6 +4,7 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <a href="{{ route('journal.index') }}" class="btn btn-sm btn-success">Lihat Dashboard</a>
+                <a href="{{ route('journal.pdf') }}" class="btn btn-sm btn-danger">Export PDF</a>
                 <a href="" onclick="windows.history().back()" class="btn btn-sm btn-dark">Kembali</a>
             </div>
         </div>
@@ -48,6 +49,13 @@
                             @else
                                 <p class="text-muted">Tidak ada data credit facility ditemukan.</p>
                             @endif
+
+                            <form method="POST" action="{{ route('journal.save.credit') }}">
+                                @csrf
+                                <button class="btn btn-primary btn-sm mb-2">
+                                    💾 Simpan Credit Facility
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -78,8 +86,8 @@
                                                     <td>{{ $row['no_akun'] }}</td>
                                                     <td>{{ $row['no_tiket'] }}</td>
 
-                                                    <td>{{ $row['request'] }}</td>
-                                                    <td>{{ $row['confirm'] }}</td>
+                                                    <td>{{ $row['request_raw'] }}</td>
+                                                    <td>{{ $row['confirm_raw'] }}</td>
 
                                                     <td class="text-danger fw-bold">
                                                         {{ $row['delay_formatted'] }}
@@ -92,6 +100,13 @@
                             @else
                                 <p class="text-muted">Tidak ditemukan eksekusi market yang delay lebih dari 1 detik.</p>
                             @endif
+
+                            <form method="POST" action="{{ route('journal.save.market') }}">
+                                @csrf
+                                <button class="btn btn-success btn-sm mb-2">
+                                    💾 Simpan Market Execution
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -140,6 +155,13 @@
                             @else
                                 <p class="text-muted">Tidak ada harga tidak sesuai.</p>
                             @endif
+
+                            <form method="POST" action="{{ route('journal.save.wrong') }}">
+                                @csrf
+                                <button class="btn btn-danger btn-sm mb-2">
+                                    💾 Simpan Wrong Price
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

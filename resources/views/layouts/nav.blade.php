@@ -4,7 +4,9 @@
 
         <!-- Regular menu link -->
         <li class="nav-item">
-            <a href="{{ route('home') }}" class="nav-link mininav-toggle collapsed"><i class="psi-home fs-5 me-2"></i>
+            <a href="{{ route('dashboard') }}"
+                class="nav-link mininav-toggle collapsed {{ request()->is('dashboard*') ? 'active' : '' }}"><i
+                    class="psi-home fs-5 me-2"></i>
 
                 <span class="nav-label mininav-content ms-1" style="">Dashboard</span>
             </a>

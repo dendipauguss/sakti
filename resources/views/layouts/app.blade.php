@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
         <meta name="description"
             content="General form-control live preview. You can copy our examples and paste them into your project!">
-        <title>General | Nifty - Admin Template</title>
+        <title>{{ $title }}</title>
 
         <!-- STYLESHEETS -->
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~--- -->
@@ -36,6 +36,7 @@
         <!-- Demo purpose CSS [ DEMO ] -->
         <link rel="stylesheet" href="{{ env('THM_LINK') }}/assets/css/color-schemes/brand/ocean/nifty.min.css">
 
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~---
 
         [ REQUIRED ]
@@ -117,6 +118,7 @@
                 }
             }
         </style>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     </head>
 
     <body class="jumping" style="">
@@ -332,6 +334,56 @@
 
         <!-- Nifty Settings [ DEMO ] -->
         <script src="{{ env('THM_LINK') }}/assets/js/demo-purpose-only.js" defer=""></script>
+
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                new DataTable("#dataTables", {
+                    dom: '<"row mb-3 justify-content-between"<"col-md-6 d-flex align-items-center gap-2"lB><"col-md-6"f>>rt<"row mt-3"<"col-md-6"i><"col-md-6"p>>',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            title: 'Data Auditor',
+                            className: 'btn btn-sm btn-success',
+                            text: '<i class="psi-file-excel"></i> Excel'
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            title: 'Data Auditor',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            className: 'btn btn-sm btn-danger',
+                            text: '<i class="psi-file"></i> PDF'
+                        },
+                        {
+                            extend: 'print',
+                            title: 'Data Auditor',
+                            className: 'btn btn-sm btn-info',
+                            text: '<i class="psi-printer"></i> Print'
+                        }
+                    ],
+                    lengthMenu: [
+                        [5, 10, 25, 50, 100],
+                        [5, 10, 25, 50, 100]
+                    ], // Jumlah opsi untuk menampilkan data
+                    pageLength: 5, // Tampilkan 5 data per halaman
+                    ordering: true, // Aktifkan fitur sorting
+                    searching: true, // Aktifkan fitur pencarian
+                    language: {
+                        lengthMenu: "Tampilkan _MENU_ data per halaman",
+                        zeroRecords: "Tidak ada data ditemukan",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data tersedia",
+                        infoFiltered: "(difilter dari total _MAX_ data)",
+                        search: "Cari:",
+                        paginate: {
+                            next: "<i class='psi-arrow-right'></i>",
+                            previous: "<i class='psi-arrow-left'></i>"
+                        }
+                    },
+                });
+            });
+        </script>
 
         <script defer=""
             src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
