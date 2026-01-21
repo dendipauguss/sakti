@@ -9,5 +9,7 @@ class JournalWrongPrice extends Model
 {
     use HasFactory;
 
+    protected $table = 'journal_wrong_prices';
+
     protected $guarded = ['id'];
 }

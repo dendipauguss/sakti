@@ -18,7 +18,9 @@ class JournalController extends Controller
     {
         return view('journal.index', [
             'title' => 'Dashboard Journal',
-            'waktu_eksekusi_market' => JournalMarketExecution::all()
+            'waktu_eksekusi_market' => JournalMarketExecution::all(),
+            'harga_tidak_sesuai' => JournalWrongPrice::all(),
+            'credit_facility' => JournalCreditFacility::all()
         ]);
     }
 
@@ -125,6 +127,8 @@ class JournalController extends Controller
                     $execType = $this->extractExecType($line1); // buy / sell
                     $completed = $this->extractCompletedPrice($line2);
                     [$bid, $ask] = $this->extractBidAsk($line1);
+                    $info = $this->extractInfo($line); // dari request line
+                    $no_tiket = $this->extractInfo($line2);
 
                     $mismatch = false;
 
@@ -136,8 +140,11 @@ class JournalController extends Controller
                         $mismatch = true;
                     }
 
-                    if ($mismatch) {
+                    if ($mismatch && !empty($info['no_tiket'])) {
                         $wrongPrice[] = [
+                            'no_akun' => $info['no_akun'],
+                            'no_tiket' => $no_tiket['no_tiket'],
+                            'tanggal' => $info['tanggal'],
                             'confirm' => $line1,
                             'close_order' => $line2,
                             'exec_type' => $execType,
@@ -212,6 +219,7 @@ class JournalController extends Controller
     public function saveWrong()
     {
         $rows = session('parsed_wrong', []);
+
         $upload = JournalUpload::latest()->first();
 
         foreach ($rows as $row) {
@@ -219,7 +227,7 @@ class JournalController extends Controller
                 'journal_upload_id' => $upload->id,
                 'no_akun'           => $row['no_akun'],
                 'no_tiket'          => $row['no_tiket'],
-                'tanggal'           => $row['tanggal'],
+                'tanggal'           => Carbon::createFromFormat('Y.m.d', $row['tanggal'])->toDateString(),
                 'exec_type'         => $row['exec_type'],
                 'completed_price'   => $row['completed'],
                 'bid_price'         => $row['bid'],

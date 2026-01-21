@@ -125,7 +125,7 @@
 
         <!-- PAGE CONTAINER -->
         <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <div id="root" class="root mn--max">
+        <div id="root" class="root mn--max mn--sticky">
 
             <!-- CONTENTS -->
             <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

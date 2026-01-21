@@ -120,6 +120,7 @@
                                         <thead class="table-primary">
                                             <tr>
                                                 <th>#</th>
+                                                <th>No Akun</th>
                                                 <th>Confirm</th>
                                                 <th>Close Order</th>
                                                 <th>Exec Type</th>
@@ -132,7 +133,9 @@
                                             @foreach ($wrongPrice as $i => $row)
                                                 <tr>
                                                     <td>{{ $i + 1 }}</td>
-
+                                                    <td>
+                                                        {{ $row['no_akun'] }}
+                                                    </td>
                                                     <td>
                                                         {{ $row['confirm'] }}
                                                     </td>
