@@ -10,14 +10,25 @@ return new class extends Migration
     {
         Schema::create('journal_credit_facilities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('journal_upload_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('journal_upload_id')
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->string('no_akun', 30);
-            $table->date('tanggal')->nullable();
-            $table->decimal('amount', 20, 8)->nullable();
-            $table->enum('type', ['credit in', 'credit out']);
+            $table->string('no_tiket', 20);
 
-            $table->text('raw_line');
+            $table->date('tanggal')->nullable();
+
+            // simpan TANPA milidetik
+            $table->time('waktu', 3)->nullable();
+
+            $table->string('ip_address', 45);
+
+            // UANG = decimal
+            $table->decimal('credit_in', 15, 2)->nullable();
+            $table->decimal('credit_out', 15, 2)->nullable();
+
+            $table->text('raw_line')->nullable();
             $table->timestamps();
         });
     }

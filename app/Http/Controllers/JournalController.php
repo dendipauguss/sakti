@@ -56,8 +56,9 @@ class JournalController extends Controller
             // ======================
             // 1) CREDIT FACILITY
             // ======================
+
             if (preg_match('/credit|credit in|credit out/i', $line)) {
-                $creditFacility[] = $line;
+                $creditFacility[] = $this->parseCreditFacilityLine($line);
             }
 
             // ==================================================
@@ -172,7 +173,6 @@ class JournalController extends Controller
         ]);
     }
 
-
     public function exportExcel()
     {
         return Excel::download(new MarketExecutionExport, 'market_execution.xlsx');
@@ -213,7 +213,7 @@ class JournalController extends Controller
             ]);
         }
 
-        return redirect()->route('journal.index')->with('success', 'Market Execution berhasil disimpan');
+        return back()->with('success', 'Market Execution berhasil disimpan');
     }
 
     public function saveWrong()
@@ -245,15 +245,17 @@ class JournalController extends Controller
         $rows = session('parsed_credit', []);
         $upload = JournalUpload::latest()->first();
 
-        foreach ($rows as $line) {
+        foreach ($rows as $row) {
             JournalCreditFacility::create([
                 'journal_upload_id' => $upload->id,
-                'no_akun' => $this->extractNoAkun($line),
-                'tanggal' => $this->extractTanggal($line),
-                'type'    => str_contains(strtolower($line), 'credit in')
-                    ? 'credit in'
-                    : 'credit out',
-                'raw_line' => $line
+                'no_akun' => $row['no_akun'],
+                'no_tiket' => $row['no_tiket'],
+                'tanggal' => $row['tanggal'],
+                'waktu' => $row['waktu'],
+                'ip_address' => $row['ip_address'],
+                'credit_in' => $row['credit_in'],
+                'credit_out' => $row['credit_out'],
+                'raw_line' => $row['raw']
             ]);
         }
 
@@ -263,6 +265,50 @@ class JournalController extends Controller
     // =====================================================
     // ⭐ HELPER FUNCTIONS
     // =====================================================
+
+    private function parseCreditFacilityLine(string $line): ?array
+    {
+        // Pecah berdasarkan TAB
+        $parts = preg_split('/\t+/', trim($line));
+
+        if (count($parts) < 3) {
+            return null;
+        }
+
+        [$datetime, $ip, $message] = $parts;
+
+        // Ambil tanggal & waktu
+        if (!preg_match('/(\d{4}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})\.\d+/', $datetime, $dt)) {
+            return null;
+        }
+
+        // Pastikan ini CREDIT (bukan balance)
+        if (!preg_match('/changed\s+credit/i', $message)) {
+            return null;
+        }
+
+        // Ambil tiket, amount, akun
+        if (!preg_match(
+            '/#(?<tiket>\d+)\s+-\s+(?<amount>-?\d+\.\d+)\s+for\s+\'(?<akun>\d+)\'/i',
+            $message,
+            $m
+        )) {
+            return null;
+        }
+
+        $amount = (float) $m['amount'];
+
+        return [
+            'tanggal'    => Carbon::createFromFormat('Y.m.d', $dt[1])->toDateString(),
+            'waktu'      => $dt[2],
+            'ip_address' => $ip,
+            'no_akun'    => $m['akun'],
+            'no_tiket'   => $m['tiket'],
+            'credit_in'  => $amount > 0 ? $amount : 0,
+            'credit_out' => $amount < 0 ? abs($amount) : 0,
+            'raw'        => $line,
+        ];
+    }
 
     private function extractTime($line)
     {
