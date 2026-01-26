@@ -15,18 +15,24 @@
                                     <th>No</th>
                                     <th>Tanggal</th>
                                     <th>No Akun</th>
-                                    <th>Jumlah</th>
-                                    <th>Tipe</th>
-                                    <th>Baris Credit In/Out</th>
+                                    <th>No tiket</th>
+                                    <th>Waktu</th>
+                                    <th>Ip Address</th>
+                                    <th>Credit In</th>
+                                    <th>Credit Out</th>
+                                    <th>Baris Log</th>
                                 </thead>
                                 <tbody>
                                     @foreach ($credit_facility as $cf)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $cf->tanggal->format('Y-m-d') }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($cf->tanggal)->format('Y-m-d') }}</td>
                                             <td>{{ $cf->no_akun }}</td>
-                                            <td>{{ $cf->amount }}</td>
-                                            <td>{{ $cf->type }}</td>
+                                            <td>{{ $cf->no_tiket }}</td>
+                                            <td>{{ $cf->waktu }}</td>
+                                            <td>{{ $cf->ip_address }}</td>
+                                            <td>Rp. {{ $cf->credit_in }}</td>
+                                            <td>Rp. {{ $cf->credit_out }}</td>
                                             <td>{{ $cf->raw_line }}</td>
                                         </tr>
                                     @endforeach
@@ -85,9 +91,9 @@
                                             <td>{{ $hts->no_akun }}</td>
                                             <td>{{ $hts->no_tiket }}</td>
                                             <td>{{ $hts->exec_type }}</td>
-                                            <td>{{ $hts->completed_price }}</td>
-                                            <td>{{ $hts->bid_price }}</td>
-                                            <td>{{ $hts->ask_price }}</td>
+                                            <td>{{ number_format($hts->completed_price, 5) }}</td>
+                                            <td>{{ number_format($hts->bid_price, 5) }}</td>
+                                            <td>{{ number_format($hts->ask_price, 5) }}</td>
                                             <td>{{ $hts->confirm_raw }}</td>
                                             <td>{{ $hts->close_order_raw }}</td>
                                         </tr>

@@ -16,8 +16,15 @@ class JournalController extends Controller
 {
     public function index()
     {
+        $breadcrumbs = [
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Journal Report']
+        ];
+
         return view('journal.index', [
             'title' => 'Dashboard Journal',
+            'route' => 'journal.index',
+            'breadcrumbs' => $breadcrumbs,
             'waktu_eksekusi_market' => JournalMarketExecution::all(),
             'harga_tidak_sesuai' => JournalWrongPrice::all(),
             'credit_facility' => JournalCreditFacility::all()
@@ -244,6 +251,7 @@ class JournalController extends Controller
     public function saveCredit()
     {
         $rows = session('parsed_credit', []);
+
         $upload = JournalUpload::latest()->first();
 
         foreach ($rows as $row) {

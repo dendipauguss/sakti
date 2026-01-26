@@ -78,7 +78,46 @@
                 outline: 2px solid black !important;
                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
             }
+
+            /* Pagination container */
+            .dataTables_wrapper .dataTables_paginate .paginate_button {
+                background: transparent;
+                color: #aaa !important;
+                border: 1px solid #ddd;
+                padding: 6px 12px;
+                margin: 0 3px;
+                border-radius: 6px;
+                transition: 0.3s;
+            }
+
+            /* Hover */
+            .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+                background: #00327d !important;
+                color: #fff !important;
+                border-color: #00327d !important;
+            }
+
+            /* Active (Halaman yang sedang dibuka) */
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+                background: #00327d !important;
+                color: #fff !important;
+                border-color: #00327d !important;
+            }
+
+            /* Disabled button */
+            .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+                background: transparent !important;
+                color: #aaa !important;
+                border-color: #ddd !important;
+            }
+
+            /* Remove default shadows/border */
+            .dataTables_wrapper .dataTables_paginate .paginate_button:active {
+                box-shadow: none !important;
+            }
         </style>
+        <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
     </head>
 
     <body data-coreui-theme="light">
@@ -117,7 +156,53 @@
         <script src="{{ env('THM_LINK') }}/vendors/@coreui/chartjs/js/coreui-chartjs.js"></script>
         <script src="{{ env('THM_LINK') }}/vendors/@coreui/utils/js/index.js"></script>
         <script src="{{ env('THM_LINK') }}/js/main.js"></script>
-        <script></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+        <script>
+            $(document).ready(function() {
+                $('#dataTables').DataTable({
+                    dom: '<"row mb-3 justify-content-between"<"col-md-6 d-flex align-items-center gap-2"lB><"col-md-6"f>>rt<"row mt-3"<"col-md-6"i><"col-md-6"p>>',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            title: 'Data Auditor',
+                            className: 'btn btn-sm btn-success',
+                            text: 'Excel'
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            title: 'Data Auditor',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            className: 'btn btn-sm btn-danger',
+                            text: 'PDF'
+                        },
+                        {
+                            extend: 'print',
+                            title: 'Data Auditor',
+                            className: 'btn btn-sm btn-info',
+                            text: 'Print'
+                        }
+                    ],
+                    pageLength: 5,
+                    ordering: true,
+                    searching: true,
+                    language: {
+                        lengthMenu: "Tampilkan _MENU_ data per halaman",
+                        zeroRecords: "Tidak ada data ditemukan",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        search: "Cari:",
+                    }
+                });
+            });
+        </script>
 
         <script defer=""
             src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"

@@ -9,5 +9,7 @@ class JournalCreditFacility extends Model
 {
     use HasFactory;
 
+    protected $table = 'journal_credit_facilities';
+
     protected $guarded = ['id'];
 }

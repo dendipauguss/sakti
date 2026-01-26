@@ -1,11 +1,11 @@
 <div class="sidebar-header border-bottom">
     <div class="sidebar-brand">
-        <svg class="sidebar-brand-full" width="88" height="32" alt="CoreUI Logo">
+        {{-- <svg class="sidebar-brand-full" width="88" height="32" alt="CoreUI Logo">
             <use xlink:href="{{ env('THM_LINK') }}/assets/brand/coreui.svg#full"></use>
         </svg>
         <svg class="sidebar-brand-narrow" width="32" height="32" alt="CoreUI Logo">
             <use xlink:href="{{ env('THM_LINK') }}/assets/brand/coreui.svg#signet"></use>
-        </svg>
+        </svg> --}}
     </div>
     <button class="btn-close d-lg-none" type="button" data-coreui-theme="dark" aria-label="Close"
         onclick="coreui.Sidebar.getInstance(document.querySelector(&quot;#sidebar&quot;)).toggle()"></button>
@@ -40,20 +40,20 @@
                             </a>
                             <ul class="nav-group-items compact">
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('journal.index') }}"><span class="nav-icon"><span
-                                                class="nav-icon-bullet"></span></span>
+                                    <a class="nav-link" href="{{ route('credit-facility.index') }}"><span
+                                            class="nav-icon"><span class="nav-icon-bullet"></span></span>
                                         Credit Facility
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="base/accordion.html"><span class="nav-icon"><span
-                                                class="nav-icon-bullet"></span></span>
+                                    <a class="nav-link" href="{{ route('market-execution.index') }}"><span
+                                            class="nav-icon"><span class="nav-icon-bullet"></span></span>
                                         Waktu Eksekusi Market
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="base/accordion.html"><span class="nav-icon"><span
-                                                class="nav-icon-bullet"></span></span>
+                                    <a class="nav-link" href="{{ route('wrong-price.index') }}"><span
+                                            class="nav-icon"><span class="nav-icon-bullet"></span></span>
                                         Harga Tidak Sesuai
                                     </a>
                                 </li>
