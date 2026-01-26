@@ -6,6 +6,10 @@
         <svg class="sidebar-brand-narrow" width="32" height="32" alt="CoreUI Logo">
             <use xlink:href="{{ env('THM_LINK') }}/assets/brand/coreui.svg#signet"></use>
         </svg> --}}
+        <div class="text-wrap text-center">
+            <h4>SAKTI</h4>
+            <small>Sistem Informasi Analisis Kinerja Transaksi PBK</small>
+        </div>
     </div>
     <button class="btn-close d-lg-none" type="button" data-coreui-theme="dark" aria-label="Close"
         onclick="coreui.Sidebar.getInstance(document.querySelector(&quot;#sidebar&quot;)).toggle()"></button>

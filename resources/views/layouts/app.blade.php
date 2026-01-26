@@ -132,11 +132,12 @@
                 @yield('content')
             </div>
             <footer class="footer px-4" data-coreui-theme="dark">
-                <div><a href="https://coreui.io">CoreUI </a><a
-                        href="https://coreui.io/product/free-bootstrap-admin-template/">Bootstrap Admin Template</a> ©
-                    2025 creativeLabs.</div>
-                <div class="ms-auto">Powered by&nbsp;<a href="https://coreui.io/bootstrap/docs/">CoreUI UI
-                        Components</a></div>
+                <div><a href="https://sakti.test/" class="link-info text-decoration-none" target="_blank">Sistem
+                        Informasi Analisis
+                        Kinerja Transaksi PBK</a> ©
+                    2026</div>
+                <div class="ms-auto">Powered by&nbsp;<a href="https://bappebti.go.id/"
+                        class="link-info text-decoration-none" target="_blank">Bappebti</a></div>
             </footer>
         </div>
         <!-- CoreUI and necessary plugins-->
