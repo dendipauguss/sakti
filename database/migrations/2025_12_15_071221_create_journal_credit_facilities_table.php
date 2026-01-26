@@ -25,8 +25,8 @@ return new class extends Migration
             $table->string('ip_address', 45);
 
             // UANG = decimal
-            $table->decimal('credit_in', 15, 2)->nullable();
-            $table->decimal('credit_out', 15, 2)->nullable();
+            $table->decimal('credit_in', 15, 2)->default(0);
+            $table->decimal('credit_out', 15, 2)->default(0);
 
             $table->text('raw_line')->nullable();
             $table->timestamps();

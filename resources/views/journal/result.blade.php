@@ -31,15 +31,29 @@
                                         <thead class="table-primary">
                                             <tr>
                                                 <th>#</th>
-                                                <th>Line</th>
+                                                <th>Tanggal</th>
+                                                <th>Waktu</th>
+                                                <th>Ip Address</th>
+                                                <th>Nomor Akun</th>
+                                                <th>Nomor Tiket</th>
+                                                <th>Credit In</th>
+                                                <th>Credit Out</th>
+                                                <th>Baris Log</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($creditFacility as $i => $line)
                                                 <tr>
                                                     <td>{{ $i + 1 }}</td>
+                                                    <td>{{ $line['tanggal'] }}</td>
+                                                    <td>{{ $line['waktu'] }}</td>
+                                                    <td>{{ $line['ip_address'] }}</td>
+                                                    <td>{{ $line['no_akun'] }}</td>
+                                                    <td>{{ $line['no_tiket'] }}</td>
+                                                    <td>{{ $line['credit_in'] }}</td>
+                                                    <td>{{ $line['credit_out'] }}</td>
                                                     <td>
-                                                        <pre class="m-0">{{ $line }}</pre>
+                                                        <pre class="m-0">{{ $line['raw'] }}</pre>
                                                     </td>
                                                 </tr>
                                             @endforeach

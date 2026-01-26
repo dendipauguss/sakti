@@ -57,8 +57,9 @@ class JournalController extends Controller
             // 1) CREDIT FACILITY
             // ======================
 
-            if (preg_match('/credit|credit in|credit out/i', $line)) {
-                $creditFacility[] = $this->parseCreditFacilityLine($line);
+            $parsed = $this->parseCreditFacilityLine($line);
+            if ($parsed !== null) {
+                $creditFacility[] = $parsed;
             }
 
             // ==================================================
@@ -268,44 +269,35 @@ class JournalController extends Controller
 
     private function parseCreditFacilityLine(string $line): ?array
     {
-        // Pecah berdasarkan TAB
-        $parts = preg_split('/\t+/', trim($line));
+        $line = trim($line);
 
-        if (count($parts) < 3) {
-            return null;
-        }
+        $regex = '/
+            (?<tanggal>\d{4}\.\d{2}\.\d{2})\s*
+            (?<waktu>\d{2}:\d{2}:\d{2})\.(?<ms>\d{3})
+            (?<ip>\d{1,3}(?:\.\d{1,3}){3})
+            \'\d+\':\s*
+            changed\s+credit\s+
+            \#(?<tiket>\d+)\s*-\s*
+            (?<amount>-?\d+\.\d+)\s+
+            for\s+\'(?<akun>\d+)\'\s*-\s*
+            (?<type>credit\s+in|credit\s+out)
+        /ix';
 
-        [$datetime, $ip, $message] = $parts;
-
-        // Ambil tanggal & waktu
-        if (!preg_match('/(\d{4}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})\.\d+/', $datetime, $dt)) {
-            return null;
-        }
-
-        // Pastikan ini CREDIT (bukan balance)
-        if (!preg_match('/changed\s+credit/i', $message)) {
-            return null;
-        }
-
-        // Ambil tiket, amount, akun
-        if (!preg_match(
-            '/#(?<tiket>\d+)\s+-\s+(?<amount>-?\d+\.\d+)\s+for\s+\'(?<akun>\d+)\'/i',
-            $message,
-            $m
-        )) {
+        if (!preg_match($regex, $line, $m)) {
             return null;
         }
 
         $amount = (float) $m['amount'];
+        $type   = strtolower($m['type']);
 
         return [
-            'tanggal'    => Carbon::createFromFormat('Y.m.d', $dt[1])->toDateString(),
-            'waktu'      => $dt[2],
-            'ip_address' => $ip,
+            'tanggal'    => \Carbon\Carbon::createFromFormat('Y.m.d', $m['tanggal'])->toDateString(),
+            'waktu'      => $m['waktu'],          // 18:15:08
+            'ip_address' => $m['ip'],             // FULL IP FIXED ✅
             'no_akun'    => $m['akun'],
             'no_tiket'   => $m['tiket'],
-            'credit_in'  => $amount > 0 ? $amount : 0,
-            'credit_out' => $amount < 0 ? abs($amount) : 0,
+            'credit_in'  => $type === 'credit in'  ? abs($amount) : 0,
+            'credit_out' => $type === 'credit out' ? abs($amount) : 0,
             'raw'        => $line,
         ];
     }
