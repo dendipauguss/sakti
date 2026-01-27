@@ -63,7 +63,7 @@
                                 </li>
                             </ul>
                         </li>
-                        <li class="nav-group">
+                        {{-- <li class="nav-group">
                             <a class="nav-link nav-group-toggle" href="#">
                                 <svg class="nav-icon">
                                     <use
@@ -79,6 +79,15 @@
                                     </a>
                                 </li>
                             </ul>
+                        </li> --}}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('equity.index') }}">
+                                <svg class="nav-icon">
+                                    <use
+                                        xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-speedometer">
+                                    </use>
+                                </svg> Equity Report
+                            </a>
                         </li>
                     </div>
                 </div>

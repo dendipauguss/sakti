@@ -10,6 +10,7 @@ class JournalWrongPriceController extends Controller
     public function index()
     {
         $breadcrumbs = [
+            ['label' => 'Home', 'url' => route('home')],
             ['label' => 'Journal', 'url' => route('journal.index')],
             ['label' => 'Wrong Price']
         ];

@@ -290,7 +290,7 @@
             window._nQc = "89417937";
         </script>
         <script id="" text="" charset="" type="text/javascript" src="https://serve.albacross.com/track.js"></script>
-        <div id="beacon-container">
+        {{-- <div id="beacon-container">
             <div class="hsds-beacon">
                 <div class="Beacon">
                     <div class="BeaconFabButtonFrame"
@@ -399,7 +399,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </body>
 
 </html>

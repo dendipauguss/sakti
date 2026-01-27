@@ -40,7 +40,7 @@
         <meta name="description" content="CoreUI - Open Source Bootstrap Admin Template">
         <meta name="author" content="Łukasz Holeczek">
         <meta name="keyword" content="Bootstrap,Admin,Template,Open,Source,jQuery,CSS,HTML,RWD,Dashboard">
-        <title>CoreUI Free Bootstrap Admin Template</title>
+        <title>SAKTI | Login</title>
         <link rel="apple-touch-icon" sizes="57x57" href="{{ env('THM_LINK') }}/assets/favicon/apple-icon-57x57.png">
         <link rel="apple-touch-icon" sizes="60x60" href="{{ env('THM_LINK') }}/assets/favicon/apple-icon-60x60.png">
         <link rel="apple-touch-icon" sizes="72x72" href="{{ env('THM_LINK') }}/assets/favicon/apple-icon-72x72.png">
@@ -182,7 +182,7 @@
             }(window, document, window.Beacon || function() {});
         </script>
         <script type="text/javascript" id="" charset="">
-            window.Beacon("init", "6602a052-8c37-41e0-88af-58bdb45c580e");
+            // window.Beacon("init", "6602a052-8c37-41e0-88af-58bdb45c580e");
         </script>
         <script type="text/javascript" id="" charset="">
             (function(a, e, b, f, g, c, d) {
@@ -200,7 +200,7 @@
             window._nQc = "89417937";
         </script>
         <script id="" text="" charset="" type="text/javascript" src="https://serve.albacross.com/track.js"></script>
-        <div id="beacon-container">
+        {{-- <div id="beacon-container">
             <div class="hsds-beacon">
                 <div class="Beacon">
                     <div class="BeaconFabButtonFrame"
@@ -309,7 +309,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </body>
 
 </html>

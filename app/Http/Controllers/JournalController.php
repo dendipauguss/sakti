@@ -23,7 +23,6 @@ class JournalController extends Controller
 
         return view('journal.index', [
             'title' => 'Dashboard Journal',
-            'route' => 'journal.index',
             'breadcrumbs' => $breadcrumbs,
             'waktu_eksekusi_market' => JournalMarketExecution::all(),
             'harga_tidak_sesuai' => JournalWrongPrice::all(),

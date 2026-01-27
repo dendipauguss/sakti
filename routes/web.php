@@ -9,6 +9,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JournalCreditFacilityController;
 use App\Http\Controllers\JournalMarketExecutionController;
 use App\Http\Controllers\JournalWrongPriceController;
+use App\Http\Controllers\EquityReportController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -36,7 +37,10 @@ Route::middleware('auth', 'user-aktif')->group(function () {
     Route::post('/journal/save/market', [JournalController::class, 'saveMarket'])->name('journal.save.market');
     Route::post('/journal/save/wrong', [JournalController::class, 'saveWrong'])->name('journal.save.wrong');
     Route::post('/journal/save/credit', [JournalController::class, 'saveCredit'])->name('journal.save.credit');
+    Route::get('/equity/upload', [EquityReportController::class, 'upload'])->name('equity.upload');
+    Route::post('/equity/upload', [EquityReportController::class, 'uploadEquityReport'])->name('equity.upload.process');
     Route::resource('/journal/market-execution', JournalMarketExecutionController::class);
     Route::resource('/journal/wrong-price', JournalWrongPriceController::class);
     Route::resource('/journal/credit-facility', JournalCreditFacilityController::class);
+    Route::resource('/equity', EquityReportController::class);
 });
