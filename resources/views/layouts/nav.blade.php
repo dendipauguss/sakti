@@ -35,7 +35,8 @@
                             </a>
                         </li>
                         <li class="nav-group">
-                            <a class="nav-link nav-group-toggle" href="#">
+                            <a class="nav-link nav-group-toggle {{ request()->is('journal*') ? 'active' : '' }}"
+                                href="#">
                                 <svg class="nav-icon">
                                     <use
                                         xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-puzzle">

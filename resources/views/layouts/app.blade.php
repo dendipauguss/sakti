@@ -206,8 +206,8 @@
             $(document).ready(function() {
                 var table = $('#dataTables').DataTable({
                     dom: '<"row mb-3 justify-content-between"' +
-                        '<"col-md-4 d-flex align-items-center gap-3"lB>' +
-                        '<"col-md-3"f>' +
+                        '<"col-md-7 d-flex align-items-center gap-3"lB>' +
+                        '<"col-md-3 d-flex justify-content-end"f>' +
                         '>rt' +
                         '<"row mt-3"<"col-md-6"i><"col-md-6 d-flex justify-content-end"p>>',
                     buttons: [{

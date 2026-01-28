@@ -16,6 +16,73 @@
         <div class="row">
             <div class="col-md-12 mb-3">
                 <div class="row">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Hasil Deteksi IP Perusahaan</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>IP Perusahaan yang dicek:</strong>
+                                @foreach ($ip_perusahaan as $ip)
+                                    <span class="badge bg-info">{{ $ip }}</span>
+                                @endforeach
+                            </div>
+                            <table class="table table-bordered table-striped" id="dataTables">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Tanggal</th>
+                                        <th>Waktu</th>
+                                        <th>No Akun</th>
+                                        <th>IP Publik</th>
+                                        <th>Status</th>
+                                        <th>Baris Log</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($ipCompanyLogs as $i => $row)
+                                        <tr>
+                                            <td>{{ $i + 1 }}</td>
+                                            <td>{{ $row['tanggal'] }}</td>
+                                            <td>{{ $row['waktu'] }}</td>
+                                            <td>
+                                                {{ $row['no_akun'] ?? '-' }}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">
+                                                    {{ $row['ip'] }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">
+                                                    IP Perusahaan
+                                                </span>
+                                            </td>
+                                            <td style="max-width:500px;">
+                                                <small class="text-muted">
+                                                    {{ $row['raw'] }}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">
+                                                Tidak ditemukan baris journal dengan IP perusahaan
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                            <form action="{{ route('journal.save.ip-perusahaan') }}" method="POST" class="mt-3">
+                                @csrf
+                                <button class="btn btn-success">
+                                    <i class="fas fa-save"></i> Simpan ke Database
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="card">
                         <div class="card-body">
                             <h4 class="mt-4">Credit Facility</h4>

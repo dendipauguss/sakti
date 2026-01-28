@@ -8,7 +8,7 @@
                         <h5 class="card-title">IP Address Perusahaan</h5>
                         <div class="table-responsive mt-1">
                             <table class="table table-hover table-bordered" id="dataTables">
-                                <thead class="table-primary">
+                                <thead class="table-dark">
                                     <th>No</th>
                                     <th>Tanggal</th>
                                     <th>Waktu</th>
@@ -17,14 +17,14 @@
                                     <th>Baris Log</th>
                                 </thead>
                                 <tbody>
-                                    @foreach ($market_execution as $wem)
+                                    @foreach ($ip_perusahaan as $ip)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $wem->tanggal->format('Y-m-d') }}</td>
-                                            <td>{{ $wem->waktu }}</td>
-                                            <td>{{ $wem->ip_address_publik }}</td>
-                                            <td>{{ $wem->ip_address_perusahaan }}</td>
-                                            <td>{{ $wem->raw_line }}</td>
+                                            <td>{{ $ip->tanggal->format('Y-m-d') }}</td>
+                                            <td>{{ $ip->waktu }}</td>
+                                            <td>{{ $ip->ip_address_publik }}</td>
+                                            <td>{{ $ip->ip_address_perusahaan }}</td>
+                                            <td>{{ $ip->raw_line }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

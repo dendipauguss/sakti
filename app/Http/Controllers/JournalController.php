@@ -10,6 +10,7 @@ use App\Models\JournalMarketExecution;
 use App\Models\JournalUpload;
 use App\Models\JournalWrongPrice;
 use App\Models\JournalCreditFacility;
+use App\Models\JournalIPPerusahaan;
 use Carbon\Carbon;
 
 class JournalController extends Controller
@@ -48,10 +49,12 @@ class JournalController extends Controller
     public function uploadProcess(Request $req)
     {
         $req->validate([
-            'file' => 'required|mimes:htm,html,txt'
+            'file' => 'required|mimes:htm,html,txt',
+            'ip_perusahaan' => 'required|string',
         ]);
 
         $file = $req->file('file')->get();
+
         $rawLines = explode("\n", $file);
 
         // Clean html tag
@@ -61,12 +64,19 @@ class JournalController extends Controller
         $marketExecution = [];
         $wrongPrice = [];
 
+        // ======================
+        // 1) IP PERUSAHAAN
+        // ======================            
+
+        $ipPerusahaan = array_map('trim', explode(',', $req->ip_perusahaan));
+        $ipCompanyLogs = $this->parseIPPerusahaanFromHTML($file, $ipPerusahaan);
+
         for ($i = 0; $i < count($lines); $i++) {
 
             $line = trim($lines[$i]);
 
             // ======================
-            // 1) CREDIT FACILITY
+            // 2) CREDIT FACILITY
             // ======================
 
             $parsed = $this->parseCreditFacilityLine($line);
@@ -75,7 +85,7 @@ class JournalController extends Controller
             }
 
             // ==================================================
-            // 2) WAKTU EKSEKUSI MARKET  (request → confirm)
+            // 3) WAKTU EKSEKUSI MARKET  (request → confirm)
             // ==================================================
             if (isset($lines[$i + 1])) {
 
@@ -123,9 +133,8 @@ class JournalController extends Controller
                 }
             }
 
-
             // ==================================================
-            // 3) HARGA TIDAK SESUAI  (confirm close → close order)
+            // 4) HARGA TIDAK SESUAI  (confirm close → close order)
             // ==================================================
             if (isset($lines[$i + 1])) {
 
@@ -175,11 +184,14 @@ class JournalController extends Controller
             'parsed_credit' => $creditFacility,
             'parsed_market' => $marketExecution,
             'parsed_wrong'  => $wrongPrice,
+            'parsed_ip_perusahaan' => $ipCompanyLogs
         ]);
+
 
         $breadcrumbs = [
             ['label' => 'Home', 'url' => route('home')],
-            ['label' => 'Journal Report']
+            ['label' => 'Journal Report', 'url' => route('journal.index')],
+            ['label' => 'Hasil Parsing Journal']
         ];
 
         return view('journal.result', [
@@ -188,24 +200,10 @@ class JournalController extends Controller
             'creditFacility' => $creditFacility,
             'marketExecution' => $marketExecution,
             'wrongPrice' => $wrongPrice,
+            'ip_perusahaan' => $ipPerusahaan,
+            'ipCompanyLogs' => $ipCompanyLogs,
             'breadcrumbs' => $breadcrumbs
         ]);
-    }
-
-    public function exportExcel()
-    {
-        return Excel::download(new MarketExecutionExport, 'market_execution.xlsx');
-    }
-
-    public function exportPDF()
-    {
-        $title = 'Ekspor PDF';
-        $data = JournalMarketExecution::all();
-
-        $pdf = Pdf::loadView('journal.execution_market.pdf', compact('data', 'title'))
-            ->setPaper('A4', 'landscape');
-
-        return $pdf->download('market_execution.pdf');
     }
 
     public function saveMarket()
@@ -282,9 +280,99 @@ class JournalController extends Controller
         return back()->with('success', 'Credit Facility berhasil disimpan');
     }
 
+    public function saveIPPerusahaan()
+    {
+        $rows = session('parsed_ip_company', []);
+        $upload = JournalUpload::latest()->first();
+
+        foreach ($rows as $row) {
+            JournalIPPerusahaan::create([
+                'journal_upload_id'      => $upload->id,
+                'no_akun'                => $row['no_akun'],
+                'tanggal'                => $row['tanggal'],
+                'waktu'                  => $row['waktu'],
+                'ip_address_publik'      => $row['ip'],
+                'ip_address_perusahaan'  => $row['ip'],
+                'raw_line'               => $row['raw'],
+            ]);
+        }
+
+        return back()->with('success', 'IP Perusahaan berhasil disimpan');
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new MarketExecutionExport, 'market_execution.xlsx');
+    }
+
+    public function exportPDF()
+    {
+        $title = 'Ekspor PDF';
+        $data = JournalMarketExecution::all();
+
+        $pdf = Pdf::loadView('journal.execution_market.pdf', compact('data', 'title'))
+            ->setPaper('A4', 'landscape');
+
+        return $pdf->download('market_execution.pdf');
+    }
+
     // =====================================================
     // ⭐ HELPER FUNCTIONS
     // =====================================================
+
+    private function parseIPPerusahaanFromHTML(string $html, array $ipPerusahaan): array
+    {
+        libxml_use_internal_errors(true);
+
+        $dom = new \DOMDocument();
+        $dom->loadHTML($html);
+
+        $rows = $dom->getElementsByTagName('tr');
+        $results = [];
+
+        foreach ($rows as $row) {
+            $cols = $row->getElementsByTagName('td');
+
+            if ($cols->length < 3) {
+                continue;
+            }
+
+            $time = trim($cols->item(0)->textContent);
+            $ip   = trim($cols->item(1)->textContent);
+            $msg  = trim($cols->item(2)->textContent);
+
+            // Skip baris tanpa IP
+            if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP)) {
+                continue;
+            }
+
+            // Cek IP perusahaan
+            if (!in_array($ip, $ipPerusahaan)) {
+                continue;
+            }
+
+            // Parse tanggal & waktu
+            if (!preg_match('/(\d{4}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})/', $time, $dt)) {
+                continue;
+            }
+
+            // Ambil no akun jika ada
+            $noAkun = null;
+            if (preg_match("/'(\d{5,})'/", $msg, $m)) {
+                $noAkun = $m[1];
+            }
+
+            $results[] = [
+                'tanggal' => \Carbon\Carbon::createFromFormat('Y.m.d', $dt[1])->toDateString(),
+                'waktu'   => $dt[2],
+                'no_akun' => $noAkun,
+                'ip'      => $ip,
+                'raw'     => $msg,
+            ];
+        }
+
+        return $results;
+    }
 
     private function parseCreditFacilityLine(string $line): ?array
     {

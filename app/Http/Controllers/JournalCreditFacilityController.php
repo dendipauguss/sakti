@@ -11,7 +11,7 @@ class JournalCreditFacilityController extends Controller
     {
         $breadcrumbs = [
             ['label' => 'Home', 'url' => route('home')],
-            ['label' => 'Journal', 'url' => route('journal.index')],
+            ['label' => 'Journal Report', 'url' => route('journal.index')],
             ['label' => 'Credit Facility']
         ];
 

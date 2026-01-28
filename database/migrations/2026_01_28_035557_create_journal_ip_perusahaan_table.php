@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('ip_address_publik', 45);
             $table->string('ip_address_perusahaan', 45);
             $table->text('raw_line')->nullable();
+            $table->boolean('is_match')->default(false);
             $table->timestamps();
         });
     }

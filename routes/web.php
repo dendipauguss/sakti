@@ -35,6 +35,7 @@ Route::middleware('auth', 'user-aktif')->group(function () {
     Route::get('/journal', [JournalController::class, 'index'])->name('journal.index');
     Route::get('/journal/category/{category}', [JournalController::class, 'categoryDetail'])->name('journal.category');
     Route::get('/journal/export-pdf', [JournalController::class, 'exportPDF'])->name('journal.pdf');
+    Route::post('/journal/save/ip-perusahaan', [JournalController::class, 'saveIPPerusahaan'])->name('journal.save.ip-perusahaan');
     Route::post('/journal/save/market', [JournalController::class, 'saveMarket'])->name('journal.save.market');
     Route::post('/journal/save/wrong', [JournalController::class, 'saveWrong'])->name('journal.save.wrong');
     Route::post('/journal/save/credit', [JournalController::class, 'saveCredit'])->name('journal.save.credit');
