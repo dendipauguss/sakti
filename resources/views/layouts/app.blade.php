@@ -141,9 +141,10 @@
 
             /* Gaya input pencarian agar lebih ramping */
             .dataTables_filter input {
-                border-radius: 20px;
+                border-radius: 10px;
                 padding: 5px 15px;
                 border: 1px solid #ddd;
+                margin-left: 5px;
             }
 
             .dataTables_length {
@@ -203,45 +204,53 @@
 
         <script>
             $(document).ready(function() {
-                $('#dataTables').DataTable({
-                    // Tambahkan class 'dt-buttons-group' atau gunakan wrapper Bootstrap di dom
-                    dom: '<"row mb-3 justify-content-between"<"col-md-8 d-flex align-items-center gap-3"l<"input-group"B>><"col-md-3"f>>rt<"row mt-3"<"col-md-6"i><"col-md-6"p>>',
+                var table = $('#dataTables').DataTable({
+                    dom: '<"row mb-3 justify-content-between"' +
+                        '<"col-md-4 d-flex align-items-center gap-3"lB>' +
+                        '<"col-md-3"f>' +
+                        '>rt' +
+                        '<"row mt-3"<"col-md-6"i><"col-md-6 d-flex justify-content-end"p>>',
                     buttons: [{
                             extend: 'excelHtml5',
-                            title: 'Data Auditor',
-                            className: 'btn btn-sm btn-outline-secondary', // Menggunakan outline agar terlihat modern
+                            className: 'btn btn-sm btn-success',
                             text: '<i class="fas fa-file-excel"></i> Excel'
                         },
                         {
                             extend: 'pdfHtml5',
-                            title: 'Data Auditor',
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-                            className: 'btn btn-sm btn-outline-secondary',
+                            className: 'btn btn-sm btn-danger',
                             text: '<i class="fas fa-file-pdf"></i> PDF'
                         },
                         {
                             extend: 'print',
-                            title: 'Data Auditor',
-                            className: 'btn btn-sm btn-outline-secondary',
+                            className: 'btn btn-sm btn-info',
                             text: '<i class="fas fa-print"></i> Print'
                         }
+                    ],
+                    lengthMenu: [
+                        [5, 10, 25, 50, -1],
+                        [5, 10, 25, 50, "All"]
                     ],
                     pageLength: 5,
                     ordering: true,
                     searching: true,
-                    autoWidth: false, // Disarankan false agar CSS kita yang mengontrol lebar
                     language: {
-                        lengthMenu: "Tampilkan _MENU_ data",
+                        lengthMenu: "Tampilkan _MENU_ data per halaman",
                         zeroRecords: "Tidak ada data ditemukan",
                         info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data tersedia",
+                        infoFiltered: "(difilter dari total _MAX_ data)",
                         search: "Cari:",
                         paginate: {
-                            previous: "<",
-                            next: ">"
+                            next: "<svg class='nav-icon' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-right'></use></svg>",
+                            previous: "<svg class='nav-icon' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-left'></use></svg>"
                         }
                     }
                 });
+
+                // 🔥 Ubah wrapper dt-buttons jadi btn-group
+                table.buttons().container()
+                    .addClass('btn-group')
+                    .removeClass('dt-buttons');
             });
         </script>
 

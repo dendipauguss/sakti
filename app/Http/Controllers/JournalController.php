@@ -33,8 +33,14 @@ class JournalController extends Controller
     // =============== UPLOAD PAGE ===============
     public function uploadPage()
     {
+        $breadcrumbs = [
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Journal Report']
+        ];
+
         return view('journal.upload', [
-            'title' => 'Upload Journal Report'
+            'title' => 'Upload Journal Report',
+            'breadcrumbs' => $breadcrumbs
         ]);
     }
 
@@ -171,12 +177,18 @@ class JournalController extends Controller
             'parsed_wrong'  => $wrongPrice,
         ]);
 
+        $breadcrumbs = [
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Journal Report']
+        ];
+
         return view('journal.result', [
             'title' => 'Hasil Parsing Journal',
             'parsed' => $lines,
             'creditFacility' => $creditFacility,
             'marketExecution' => $marketExecution,
             'wrongPrice' => $wrongPrice,
+            'breadcrumbs' => $breadcrumbs
         ]);
     }
 

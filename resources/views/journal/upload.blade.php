@@ -17,7 +17,13 @@
                             @csrf
 
                             <div class="mb-3">
-                                <label class="form-label">Pilih File Journal (.htm)</label>
+                                <label class="form-label">IP Perusahaan yang ingin di cek</label>
+                                <input type="text" name="ip_perusahaan" id="ip_perusahaan" class="form-control"
+                                    placeholder="contoh: 192.168.1.1, 10.1.2.3">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Pilih File Journal Report (.htm)</label>
                                 <input type="file" class="form-control" name="file" required accept=".htm,.html">
                             </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('content')
-    <section>
+    <div class="container-lg">
         <div class="row">
             <div class="col-md-6 mb-3">
                 <a href="{{ route('journal.index') }}" class="btn btn-sm btn-success">Lihat Dashboard</a>
@@ -10,13 +10,7 @@
         </div>
         <div class="row">
             <div class="col-md-12 mb-3">
-
                 <h5>Jumlah baris: {{ count($parsed) }}</h5>
-                {{-- <pre class="mt-3" style="background: #f7f7f7; padding: 10px; border-radius: 5px; max-height: 450px; overflow:auto;">
-            @foreach ($parsed as $line)
-{{ $line }}
-@endforeach
-            </pre> --}}
             </div>
         </div>
         <div class="row">
@@ -184,5 +178,5 @@
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 @endsection

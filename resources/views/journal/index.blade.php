@@ -4,9 +4,6 @@
         <div class="row">
             <div class="col-md-12 mb-3">
                 <div class="card h-100">
-                    <div class="card-header">
-                        <a href="{{ route('journal.upload') }}" class="btn btn-sm btn-primary">+ Filter Baru</a>
-                    </div>
                     <div class="card-body">
                         <h5 class="card-title">Credit Facility</h5>
                         <div class="table-responsive mt-1">

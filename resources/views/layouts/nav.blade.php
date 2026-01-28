@@ -44,6 +44,22 @@
                             </a>
                             <ul class="nav-group-items compact">
                                 <li class="nav-item">
+                                    <a class="nav-link text-wrap" href="{{ route('journal.upload') }}">
+                                        <span class="nav-icon">
+                                            <span class="nav-icon-bullet"></span>
+                                        </span>
+                                        Upload Journal Report File
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-wrap" href="{{ route('ip-perusahaan.index') }}">
+                                        <span class="nav-icon">
+                                            <span class="nav-icon-bullet"></span>
+                                        </span>
+                                        IP Perusahaan
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link" href="{{ route('credit-facility.index') }}"><span
                                             class="nav-icon"><span class="nav-icon-bullet"></span></span>
                                         Credit Facility
