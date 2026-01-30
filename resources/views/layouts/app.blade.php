@@ -166,6 +166,54 @@
             <div class="body flex-grow-1">
                 @yield('content')
             </div>
+
+            {{-- Alert Success --}}
+            @if (session('success'))
+                <div class="toast-container position-fixed top-0 end-0 p-3">
+                    <div id="toastSuccess" class="toast border-0">
+                        <div class="toast-header bg-success text-white">
+                            <strong class="me-auto">Sukses</strong>
+                            <button type="button" class="btn-close btn-close-white"
+                                data-coreui-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body text-dark">
+                            {{ session('success') }}
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Alert Error --}}
+            @if (session('error'))
+                <div class="toast-container position-fixed top-0 end-0 p-3">
+                    <div id="toastError" class="toast border-0">
+                        <div class="toast-header bg-danger text-white">
+                            <strong class="me-auto">Peringatan</strong>
+                            <button type="button" class="btn-close btn-close-white"
+                                data-coreui-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body text-dark">
+                            {{ session('error') }}
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if (session('info'))
+                <div class="toast-container position-fixed top-0 end-0 p-3">
+                    <div id="toastInfo" class="toast border-0">
+                        <div class="toast-header bg-info text-white">
+                            <strong class="me-auto">Info</strong>
+                            <button type="button" class="btn-close btn-close-white"
+                                data-coreui-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body text-dark">
+                            {{ session('info') }}
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <footer class="footer px-4" data-coreui-theme="dark">
                 <div><a href="https://sakti.test/" class="link-info text-decoration-none" target="_blank">Sistem
                         Informasi Analisis
@@ -241,8 +289,8 @@
                         infoFiltered: "(difilter dari total _MAX_ data)",
                         search: "Cari:",
                         paginate: {
-                            next: "<svg class='nav-icon' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-right'></use></svg>",
-                            previous: "<svg class='nav-icon' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-left'></use></svg>"
+                            next: "<svg class='icon icon-lg' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-right'></use></svg>",
+                            previous: "<svg class='icon icon-lg' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-left'></use></svg>"
                         }
                     }
                 });
@@ -251,6 +299,45 @@
                 table.buttons().container()
                     .addClass('btn-group')
                     .removeClass('dt-buttons');
+            });
+        </script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+
+                @if (session('info'))
+                    const toastEl = document.getElementById('toastInfo');
+                    if (toastEl) {
+                        const toast = new coreui.Toast(toastEl, {
+                            delay: 3000,
+                            autohide: true
+                        });
+                        toast.show();
+                    }
+                @endif
+
+                @if (session('success'))
+                    const toastEl = document.getElementById('toastSuccess');
+                    if (toastEl) {
+                        const toast = new coreui.Toast(toastEl, {
+                            delay: 3000,
+                            autohide: true
+                        });
+                        toast.show();
+                    }
+                @endif
+
+                @if (session('error'))
+                    const toastEl = document.getElementById('toastDanger');
+                    if (toastEl) {
+                        const toast = new coreui.Toast(toastEl, {
+                            delay: 3000,
+                            autohide: true
+                        });
+                        toast.show();
+                    }
+                @endif
+
             });
         </script>
 

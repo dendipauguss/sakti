@@ -3,9 +3,22 @@
     <div class="container-lg">
         <div class="row">
             <div class="col-md-6 mb-3">
-                <a href="{{ route('journal.index') }}" class="btn btn-sm btn-success">Lihat Dashboard</a>
-                <a href="{{ route('journal.pdf') }}" class="btn btn-sm btn-danger">Export PDF</a>
-                <a href="" onclick="windows.history().back()" class="btn btn-sm btn-dark">Kembali</a>
+                <div class="btn-group">
+                    <a href="" onclick="window.history.back()" class="btn btn-sm btn-secondary">
+                        <svg class="icon me-2">
+                            <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-left">
+                            </use>
+                        </svg>
+                        Kembali</a>
+                    <a href="" onclick="event.preventDefault();document.getElementById('logout-form').submit();"
+                        title="Logout" class="btn btn-sm btn-success">
+                        <svg class="icon me-2">
+                            <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-library">
+                            </use>
+                        </svg>
+                        Simpan Semua</a>
+                </div>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST">@csrf</form>
             </div>
         </div>
         <div class="row">
@@ -15,19 +28,20 @@
         </div>
         <div class="row">
             <div class="col-md-12 mb-3">
-                <div class="row">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">Hasil Deteksi IP Perusahaan</h5>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">Hasil Pencarian IP Perusahaan</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>IP Perusahaan yang dicek:</strong>
+                            @foreach ($ip_perusahaan as $ip)
+                                <span class="badge bg-info">{{ $ip }}</span>
+                            @endforeach
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <strong>IP Perusahaan yang dicek:</strong>
-                                @foreach ($ip_perusahaan as $ip)
-                                    <span class="badge bg-info">{{ $ip }}</span>
-                                @endforeach
-                            </div>
-                            <table class="table table-bordered table-striped" id="dataTables">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
                                 <thead class="table-dark">
                                     <tr>
                                         <th>No</th>
@@ -73,176 +87,195 @@
                                     @endforelse
                                 </tbody>
                             </table>
-                            <form action="{{ route('journal.save.ip-perusahaan') }}" method="POST" class="mt-3">
-                                @csrf
-                                <button class="btn btn-success">
-                                    <i class="fas fa-save"></i> Simpan ke Database
-                                </button>
-                            </form>
                         </div>
+                        <form action="{{ route('journal.save.ip-perusahaan') }}" method="POST" class="mt-3">
+                            @csrf
+                            <button class="btn btn-outline-success btn-sm mb-2">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-save">
+                                    </use>
+                                </svg>
+                                Simpan IP Perusahaan
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="mt-4">Credit Facility</h4>
-                            @if (count($creditFacility))
-                                <div class="table-responsive">
-                                    <table class="table table-bordered align-middle">
-                                        <thead class="table-primary">
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">Hasil Pencarian Credit Facility</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (count($creditFacility))
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                            <th>Ip Address</th>
+                                            <th>Nomor Akun</th>
+                                            <th>Nomor Tiket</th>
+                                            <th>Credit In</th>
+                                            <th>Credit Out</th>
+                                            <th>Baris Log</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($creditFacility as $i => $line)
                                             <tr>
-                                                <th>#</th>
-                                                <th>Tanggal</th>
-                                                <th>Waktu</th>
-                                                <th>Ip Address</th>
-                                                <th>Nomor Akun</th>
-                                                <th>Nomor Tiket</th>
-                                                <th>Credit In</th>
-                                                <th>Credit Out</th>
-                                                <th>Baris Log</th>
+                                                <td>{{ $i + 1 }}</td>
+                                                <td>{{ $line['tanggal'] }}</td>
+                                                <td>{{ $line['waktu'] }}</td>
+                                                <td>{{ $line['ip_address'] }}</td>
+                                                <td>{{ $line['no_akun'] }}</td>
+                                                <td>{{ $line['no_tiket'] }}</td>
+                                                <td>{{ $line['credit_in'] }}</td>
+                                                <td>{{ $line['credit_out'] }}</td>
+                                                <td>{{ $line['raw'] }}</td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($creditFacility as $i => $line)
-                                                <tr>
-                                                    <td>{{ $i + 1 }}</td>
-                                                    <td>{{ $line['tanggal'] }}</td>
-                                                    <td>{{ $line['waktu'] }}</td>
-                                                    <td>{{ $line['ip_address'] }}</td>
-                                                    <td>{{ $line['no_akun'] }}</td>
-                                                    <td>{{ $line['no_tiket'] }}</td>
-                                                    <td>{{ $line['credit_in'] }}</td>
-                                                    <td>{{ $line['credit_out'] }}</td>
-                                                    <td>
-                                                        <pre class="m-0">{{ $line['raw'] }}</pre>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="text-muted">Tidak ada data credit facility ditemukan.</p>
-                            @endif
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-muted">Tidak ada data credit facility ditemukan.</p>
+                        @endif
 
-                            <form method="POST" action="{{ route('journal.save.credit') }}">
-                                @csrf
-                                <button class="btn btn-primary btn-sm mb-2">
-                                    💾 Simpan Credit Facility
-                                </button>
-                            </form>
-                        </div>
+                        <form method="POST" action="{{ route('journal.save.credit') }}">
+                            @csrf
+                            <button class="btn btn-outline-success btn-sm mb-2">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-save">
+                                    </use>
+                                </svg>
+                                Simpan Credit Facility
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="mt-5">Waktu Eksekusi Market (Delay > 1 detik)</h4>
 
-                            @if (count($marketExecution))
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-sm">
-                                        <thead class="table-primary">
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">Hasil Pencarian Market Execution</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (count($marketExecution))
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Tanggal</th>
+                                            <th>No Akun</th>
+                                            <th>No Tiket</th>
+                                            <th>Request</th>
+                                            <th>Confirm</th>
+                                            <th>Delay (Detik)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($marketExecution as $i => $row)
                                             <tr>
-                                                <th>#</th>
-                                                <th>Tanggal</th>
-                                                <th>No Akun</th>
-                                                <th>No Tiket</th>
-                                                <th>Request</th>
-                                                <th>Confirm</th>
-                                                <th>Delay (Detik)</th>
+                                                <td>{{ $i + 1 }}</td>
+                                                <td>{{ $row['tanggal'] }}</td>
+                                                <td>{{ $row['no_akun'] }}</td>
+                                                <td>{{ $row['no_tiket'] }}</td>
+
+                                                <td>{{ $row['request_raw'] }}</td>
+                                                <td>{{ $row['confirm_raw'] }}</td>
+
+                                                <td class="text-danger fw-bold">
+                                                    {{ $row['delay_formatted'] }}
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($marketExecution as $i => $row)
-                                                <tr>
-                                                    <td>{{ $i + 1 }}</td>
-                                                    <td>{{ $row['tanggal'] }}</td>
-                                                    <td>{{ $row['no_akun'] }}</td>
-                                                    <td>{{ $row['no_tiket'] }}</td>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-muted">Tidak ditemukan eksekusi market yang delay lebih dari 1 detik.</p>
+                        @endif
 
-                                                    <td>{{ $row['request_raw'] }}</td>
-                                                    <td>{{ $row['confirm_raw'] }}</td>
-
-                                                    <td class="text-danger fw-bold">
-                                                        {{ $row['delay_formatted'] }}
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="text-muted">Tidak ditemukan eksekusi market yang delay lebih dari 1 detik.</p>
-                            @endif
-
-                            <form method="POST" action="{{ route('journal.save.market') }}">
-                                @csrf
-                                <button class="btn btn-success btn-sm mb-2">
-                                    💾 Simpan Market Execution
-                                </button>
-                            </form>
-                        </div>
+                        <form method="POST" action="{{ route('journal.save.market') }}">
+                            @csrf
+                            <button class="btn btn-outline-success btn-sm mb-2">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-save">
+                                    </use>
+                                </svg>
+                                Simpan Market Execution
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="mt-5">Harga Tidak Sesuai</h4>
-                            @if (count($wrongPrice))
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-sm">
-                                        <thead class="table-primary">
+
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">Hasil Pencarian Harga Tidak Sesuai</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (count($wrongPrice))
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>No Akun</th>
+                                            <th>Confirm</th>
+                                            <th>Close Order</th>
+                                            <th>Exec Type</th>
+                                            <th>Completed</th>
+                                            <th>Bid</th>
+                                            <th>Ask</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($wrongPrice as $i => $row)
                                             <tr>
-                                                <th>#</th>
-                                                <th>No Akun</th>
-                                                <th>Confirm</th>
-                                                <th>Close Order</th>
-                                                <th>Exec Type</th>
-                                                <th>Completed</th>
-                                                <th>Bid</th>
-                                                <th>Ask</th>
+                                                <td>{{ $i + 1 }}</td>
+                                                <td>
+                                                    {{ $row['no_akun'] }}
+                                                </td>
+                                                <td>
+                                                    {{ $row['confirm'] }}
+                                                </td>
+                                                <td>
+                                                    {{ $row['close_order'] }}
+                                                </td>
+
+                                                <td class="fw-bold text-primary">
+                                                    {{ strtoupper($row['exec_type']) }}
+                                                </td>
+
+                                                <td class="fw-bold text-danger">{{ $row['completed'] }}</td>
+                                                <td>{{ $row['bid'] }}</td>
+                                                <td>{{ $row['ask'] }}</td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($wrongPrice as $i => $row)
-                                                <tr>
-                                                    <td>{{ $i + 1 }}</td>
-                                                    <td>
-                                                        {{ $row['no_akun'] }}
-                                                    </td>
-                                                    <td>
-                                                        {{ $row['confirm'] }}
-                                                    </td>
-                                                    <td>
-                                                        {{ $row['close_order'] }}
-                                                    </td>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-muted">Tidak ada harga tidak sesuai.</p>
+                        @endif
 
-                                                    <td class="fw-bold text-primary">
-                                                        {{ strtoupper($row['exec_type']) }}
-                                                    </td>
-
-                                                    <td class="fw-bold text-danger">{{ $row['completed'] }}</td>
-                                                    <td>{{ $row['bid'] }}</td>
-                                                    <td>{{ $row['ask'] }}</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="text-muted">Tidak ada harga tidak sesuai.</p>
-                            @endif
-
-                            <form method="POST" action="{{ route('journal.save.wrong') }}">
-                                @csrf
-                                <button class="btn btn-danger btn-sm mb-2">
-                                    💾 Simpan Wrong Price
-                                </button>
-                            </form>
-                        </div>
+                        <form method="POST" action="{{ route('journal.save.wrong') }}">
+                            @csrf
+                            <button class="btn btn-outline-success btn-sm mb-2">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-save">
+                                    </use>
+                                </svg>
+                                Simpan Harga Tidak Sesuai
+                            </button>
+                        </form>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

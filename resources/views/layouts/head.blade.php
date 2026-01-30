@@ -52,8 +52,11 @@
         </li>
         <li class="nav-item dropdown"><a class="nav-link py-0 pe-0" data-coreui-toggle="dropdown" href="#"
                 role="button" aria-haspopup="true" aria-expanded="false">
-                <div class="avatar avatar-md"><img class="avatar-img"
-                        src="{{ env('THM_LINK') }}/assets/img/avatars/8.jpg" alt="user@email.com">
+                <div class="avatar avatar-md">
+                    <svg class="icon icon-xl me-3">
+                        <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-user">
+                        </use>
+                    </svg>
                 </div>
             </a>
             <div class="dropdown-menu dropdown-menu-end pt-0">
@@ -70,12 +73,16 @@
                     <div class="fw-semibold">Settings</div>
                 </div> --}}
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="#"
+                    onclick="event.preventDefault();
+                    document.getElementById('logout-form').submit();"
+                    title="Logout">
                     <svg class="icon me-2">
                         <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-account-logout">
                         </use>
                     </svg> Logout
                 </a>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST">@csrf</form>
             </div>
         </li>
     </ul>
