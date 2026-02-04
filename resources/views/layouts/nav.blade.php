@@ -11,7 +11,7 @@
             <small>Sistem Informasi Analisis Kinerja Transaksi PBK</small>
         </div>
     </div>
-    <button class="btn-close d-lg-none" type="button" data-coreui-theme="dark" aria-label="Close"
+    <button class="btn-close d-lg-none" type="button" aria-label="Close"
         onclick="coreui.Sidebar.getInstance(document.querySelector(&quot;#sidebar&quot;)).toggle()"></button>
 </div>
 <ul class="sidebar-nav simplebar-scrollable-y" data-coreui="navigation" data-simplebar="init">
@@ -80,8 +80,9 @@
                                 </li>
                             </ul>
                         </li>
-                        {{-- <li class="nav-group">
-                            <a class="nav-link nav-group-toggle" href="#">
+                        <li class="nav-group">
+                            <a class="nav-link nav-group-toggle {{ request()->is('equity*') ? 'active' : '' }}"
+                                href="#">
                                 <svg class="nav-icon">
                                     <use
                                         xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-puzzle">
@@ -90,21 +91,18 @@
                             </a>
                             <ul class="nav-group-items compact">
                                 <li class="nav-item">
-                                    <a class="nav-link" href="base/accordion.html"><span class="nav-icon"><span
+                                    <a class="nav-link" href="{{ route('equity.upload') }}"><span
+                                            class="nav-icon"><span class="nav-icon-bullet"></span></span>
+                                        Upload File Equity Report
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('equity.index') }}"><span class="nav-icon"><span
                                                 class="nav-icon-bullet"></span></span>
-                                        Apa Saja
+                                        Equity Report
                                     </a>
                                 </li>
                             </ul>
-                        </li> --}}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('equity.index') }}">
-                                <svg class="nav-icon">
-                                    <use
-                                        xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-speedometer">
-                                    </use>
-                                </svg> Equity Report
-                            </a>
                         </li>
                     </div>
                 </div>

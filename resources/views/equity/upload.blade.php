@@ -17,8 +17,15 @@
                             @csrf
 
                             <div class="mb-3">
-                                <label class="form-label">Pilih File Equity (.htm)</label>
-                                <input type="file" class="form-control" name="file" required accept=".htm,.html">
+                                <label class="form-label">Pilih File Equity Report 1 (.htm)</label>
+                                <input type="file" class="form-control" name="equity_file_1" required
+                                    accept=".htm,.html">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Pilih File Equity Report 2 (.htm)</label>
+                                <input type="file" class="form-control" name="equity_file_2" required
+                                    accept=".htm,.html">
                             </div>
 
                             <button class="btn btn-primary">Upload & Proses</button>

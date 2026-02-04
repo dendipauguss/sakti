@@ -10,15 +10,15 @@
                             </use>
                         </svg>
                         Kembali</a>
-                    <a href="" onclick="event.preventDefault();document.getElementById('logout-form').submit();"
-                        title="Logout" class="btn btn-sm btn-success">
+                    <a href="" onclick="event.preventDefault();document.getElementById('simpan-semua').submit();"
+                        title="Simpan Semua" class="btn btn-sm btn-success">
                         <svg class="icon me-2">
                             <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-library">
                             </use>
                         </svg>
                         Simpan Semua</a>
                 </div>
-                <form id="logout-form" action="{{ route('logout') }}" method="POST">@csrf</form>
+                <form id="simpan-semua" action="{{ route('journal.save.all') }}" method="POST">@csrf</form>
             </div>
         </div>
         <div class="row">

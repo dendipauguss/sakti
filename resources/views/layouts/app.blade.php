@@ -155,8 +155,8 @@
 
     </head>
 
-    <body data-coreui-theme="light">
-        <div class="sidebar sidebar-dark sidebar-fixed border-end" id="sidebar">
+    <body>
+        <div class="sidebar sidebar-fixed border-end" id="sidebar">
             @include('layouts.nav')
         </div>
         <div class="wrapper d-flex flex-column min-vh-100">
@@ -214,19 +214,93 @@
                 </div>
             @endif
 
-            <footer class="footer px-4" data-coreui-theme="dark">
+            <footer class="footer px-4">
                 <div><a href="https://sakti.test/" class="link-info text-decoration-none" target="_blank">Sistem
                         Informasi Analisis
-                        Kinerja Transaksi PBK</a> ©
-                    2026</div>
-                <div class="ms-auto">Powered by&nbsp;<a href="https://bappebti.go.id/"
-                        class="link-info text-decoration-none" target="_blank">Bappebti</a></div>
+                        Kinerja Transaksi PBK ©
+                        2026</a></div>
+                <div class="ms-auto"><a href="https://bappebti.go.id/" class="link-info text-decoration-none"
+                        target="_blank">Powered by&nbsp;Bappebti</a></div>
             </footer>
         </div>
         <!-- CoreUI and necessary plugins-->
         <script src="{{ env('THM_LINK') }}/vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
         <script src="{{ env('THM_LINK') }}/vendors/simplebar/js/simplebar.min.js"></script>
         <script>
+            // Theme Toggle Handler
+            const htmlElement = document.documentElement;
+            const themeButtons = document.querySelectorAll('[data-coreui-theme-value]');
+            const themeIcon = document.querySelector('.theme-icon-active');
+            const sidebar = document.getElementById('sidebar');
+
+            // Load saved theme preference on page load
+            const savedTheme = localStorage.getItem('coreui-theme') || 'dark';
+            htmlElement.setAttribute('data-coreui-theme', savedTheme);
+            applySidebarTheme(savedTheme);
+            updateThemeIcon(savedTheme);
+
+            // Add click handlers to theme buttons
+            themeButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const selectedTheme = this.getAttribute('data-coreui-theme-value');
+
+                    // Update HTML element theme
+                    htmlElement.setAttribute('data-coreui-theme', selectedTheme);
+
+                    // Update sidebar theme
+                    applySidebarTheme(selectedTheme);
+
+                    // Save preference to localStorage
+                    localStorage.setItem('coreui-theme', selectedTheme);
+
+                    // Update icon and active state
+                    updateThemeIcon(selectedTheme);
+                    updateActiveButton(selectedTheme);
+                });
+            });
+
+            // Apply sidebar theme class
+            function applySidebarTheme(theme) {
+                if (!sidebar) return;
+
+                sidebar.classList.remove('sidebar-light', 'sidebar-dark');
+
+                if (theme === 'light') {
+                    sidebar.classList.add('sidebar-light');
+                } else {
+                    sidebar.classList.add('sidebar-dark');
+                }
+            }
+
+            // Update theme icon based on selected theme
+            function updateThemeIcon(theme) {
+                if (!themeIcon) return;
+                const svgUse = themeIcon.querySelector('use');
+                if (!svgUse) return;
+
+                const iconMap = {
+                    'light': '#cil-sun',
+                    'dark': '#cil-moon',
+                    'auto': '#cil-contrast'
+                };
+
+                const href = svgUse.getAttribute('xlink:href');
+                const basePath = href.substring(0, href.lastIndexOf('#'));
+                svgUse.setAttribute('xlink:href', basePath + (iconMap[theme] || '#cil-moon'));
+            }
+
+            // Update active button state
+            function updateActiveButton(theme) {
+                themeButtons.forEach(button => {
+                    if (button.getAttribute('data-coreui-theme-value') === theme) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                });
+            }
+
             const header = document.querySelector('header.header');
 
             document.addEventListener('scroll', () => {
@@ -278,7 +352,7 @@
                         [5, 10, 25, 50, -1],
                         [5, 10, 25, 50, "All"]
                     ],
-                    pageLength: 5,
+                    pageLength: 10,
                     ordering: true,
                     searching: true,
                     language: {

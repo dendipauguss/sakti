@@ -11,7 +11,7 @@
                         <h5 class="card-title">Equity Report</h5>
                         <div class="table-responsive mt-1">
                             <table class="table table-hover table-bordered" id="dataTables">
-                                <thead class="table-primary">
+                                <thead class="table-dark">
                                     <th>No</th>
                                     <th>No Akun</th>
                                     <th>Group</th>

@@ -46,11 +46,13 @@ class JournalController extends Controller
     }
 
     // =============== PROCESS FILE ===============
-    public function uploadProcess(Request $req)
+    public function uploadProcessJournal(Request $req)
     {
         $req->validate([
             'file' => 'required|mimes:htm,html,txt',
             'ip_perusahaan' => 'required|string',
+        ], [
+            'ip_perusahaan.required' => 'Kolom IP Perusahaan tidak boleh kosong kakak.'
         ]);
 
         $file = $req->file('file')->get();
@@ -206,6 +208,8 @@ class JournalController extends Controller
         ]);
     }
 
+    public function uploadProcessJournalHistoryStatement() {}
+
     public function saveMarket()
     {
         $rows = session('parsed_market', []);
@@ -298,6 +302,16 @@ class JournalController extends Controller
         }
 
         return back()->with('success', 'IP Perusahaan berhasil disimpan');
+    }
+
+    public function saveAll()
+    {
+        $this->saveIPPerusahaan();
+        $this->saveMarket();
+        $this->saveWrong();
+        $this->saveCredit();
+
+        return back()->with('success', 'Semua data journal berhasil disimpan');
     }
 
     public function exportExcel()

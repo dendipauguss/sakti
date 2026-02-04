@@ -115,7 +115,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-6">
-                                                <button class="btn btn-info px-4" type="submit">Login</button>
+                                                <button class="btn btn-primary px-4" type="submit">Login</button>
                                             </div>
                                             <div class="col-6 text-end">
                                                 <button class="btn btn-link text-decoration-none px-0"
@@ -125,7 +125,7 @@
                                     </form>
                                 </div>
                             </div>
-                            <div class="card col-md-5 text-white bg-info py-5">
+                            <div class="card col-md-5 text-white bg-primary py-5">
                                 <div class="card-body text-center">
                                     <div>
                                         {{-- <h2>Sign up</h2>
@@ -141,6 +141,53 @@
                 </div>
             </div>
         </div>
+
+        {{-- Alert Success --}}
+        @if (session('success'))
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="toastSuccess" class="toast border-0">
+                    <div class="toast-header bg-success text-white">
+                        <strong class="me-auto">Sukses</strong>
+                        <button type="button" class="btn-close btn-close-white"
+                            data-coreui-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body text-dark">
+                        {{ session('success') }}
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Alert Error --}}
+        @if (session('error'))
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="toastError" class="toast border-0">
+                    <div class="toast-header bg-danger text-white">
+                        <strong class="me-auto">Peringatan</strong>
+                        <button type="button" class="btn-close btn-close-white"
+                            data-coreui-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body text-dark">
+                        {{ session('error') }}
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if (session('info'))
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="toastInfo" class="toast border-0">
+                    <div class="toast-header bg-info text-white">
+                        <strong class="me-auto">Info</strong>
+                        <button type="button" class="btn-close btn-close-white"
+                            data-coreui-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body text-dark">
+                        {{ session('info') }}
+                    </div>
+                </div>
+            </div>
+        @endif
         <!-- CoreUI and necessary plugins-->
         <script src="{{ env('THM_LINK') }}/vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
         <script src="{{ env('THM_LINK') }}/vendors/simplebar/js/simplebar.min.js"></script>
@@ -153,7 +200,45 @@
                 }
             });
         </script>
-        <script></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+
+                @if (session('info'))
+                    const toastEl = document.getElementById('toastInfo');
+                    if (toastEl) {
+                        const toast = new coreui.Toast(toastEl, {
+                            delay: 3000,
+                            autohide: true
+                        });
+                        toast.show();
+                    }
+                @endif
+
+                @if (session('success'))
+                    const toastEl = document.getElementById('toastSuccess');
+                    if (toastEl) {
+                        const toast = new coreui.Toast(toastEl, {
+                            delay: 3000,
+                            autohide: true
+                        });
+                        toast.show();
+                    }
+                @endif
+
+                @if (session('error'))
+                    const toastEl = document.getElementById('toastDanger');
+                    if (toastEl) {
+                        const toast = new coreui.Toast(toastEl, {
+                            delay: 3000,
+                            autohide: true
+                        });
+                        toast.show();
+                    }
+                @endif
+
+            });
+        </script>
 
         <script defer=""
             src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
