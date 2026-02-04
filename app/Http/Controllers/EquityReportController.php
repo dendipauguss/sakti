@@ -82,11 +82,19 @@ class EquityReportController extends Controller
         $parsed1 = $this->parseEquityReport($html1);
         $parsed2 = $this->parseEquityReport($html2);
 
-        $periode1 = $parsed1['periode'];   // contoh: 2024
-        $periode2 = $parsed2['periode'];   // contoh: 2025
+        $from_date_1 = Carbon::createFromFormat('Y.m.d', $parsed1['from_date']);
+        $from_date_2 = Carbon::createFromFormat('Y.m.d', $parsed2['from_date']);
 
-        $equity1 = $parsed1['rows'];       // [login => data]
-        $equity2 = $parsed2['rows'];
+        $susunan_file_berdasarkan_tanggal = $from_date_1 < $from_date_2;
+
+        if ($susunan_file_berdasarkan_tanggal) {
+            $equity1 = $parsed1['rows'];       // [login => data]
+            $equity2 = $parsed2['rows'];
+        } else {
+            $equity1 = $parsed2['rows'];       // [login => data]
+            $equity2 = $parsed1['rows'];
+        }
+
 
         // ==================================================
         // 3️⃣ SIMPAN METADATA UPLOAD (OPSIONAL)
@@ -94,8 +102,8 @@ class EquityReportController extends Controller
         $upload = EquityReport::create([
             'file_1_name' => $file1->getClientOriginalName(),
             'file_2_name' => $file2->getClientOriginalName(),
-            'periode_1'   => $periode1,
-            'periode_2'   => $periode2,
+            'periode_1' => $from_date_1,
+            'periode_2' => $from_date_2,
         ]);
 
         $comparison = [];
@@ -115,13 +123,16 @@ class EquityReportController extends Controller
             $val1 = $row1['equity'] ?? null;
             $val2 = $row2['equity'] ?? null;
 
-            $periode_1 = $row['periode_1'] ?? null;
-            $periode_2 = $row['periode_2'] ?? null;
+            $periode_1 = $row1['periode'] ?? null;
+            $periode_2 = $row2['periode'] ?? null;
 
-            // // 🔴 SKIP jika tidak lengkap
-            // if ($val1 === null || $val2 === null) {
-            //     continue;
-            // }
+            $floating_pl1 = $row1['floating_pl'] ?? null;
+            $floating_pl2 = $row2['floating_pl'] ?? null;
+
+            // 🔴 SKIP jika tidak lengkap
+            if ($val1 === null || $val2 === null) {
+                continue;
+            }
 
             // // 🔴 SKIP jika TIDAK SAMA
             // if ($val1 != $val2) {
@@ -134,35 +145,42 @@ class EquityReportController extends Controller
                 $status = 'SAMA';
             } elseif ($val2 > $val1) {
                 $status = 'NAIK';
+            } elseif ($val1 < 0 || $val2 < 0) {
+                $status = 'MINUS';
             } else {
                 $status = 'TURUN';
+            }
+
+            // 🔴 FILTER TAMPILAN
+            $bolehTampil =
+                $status === 'SAMA' || $status === 'MINUS'
+                || ($status === 'TURUN' && $val2 < 0);
+
+            if (!$bolehTampil) {
+                continue;
             }
 
             // ✅ HANYA YANG SAMA MASUK SINI
             $comparison[] = [
                 'login'        => $login,
                 'name'         => $row1['name'] ?? $row2['name'] ?? '-',
+                'currency'   => $row1['currency'] ?? $row2['currency'] ?? '-',
                 'equity_file1' => $val1,
                 'equity_file2' => $val2,
                 'periode_1'    => $periode_1,
                 'periode_2'    => $periode_2,
-                'selisih'      => 0,
+                'floating_pl1' => $floating_pl1,
+                'floating_pl2' => $floating_pl2,
+                'selisih'      => $val2 - $val1,
                 'status'       => $status,
             ];
         }
 
         // dd($comparison);
 
-        $statusPriority = [
-            'SAMA' => 1,
-            'NAIK' => 2,
-            'TURUN' => 3,
-            'TIDAK LENGKAP' => 4,
-        ];
-
-        usort($comparison, function ($a, $b) use ($statusPriority) {
-            return ($statusPriority[$a['status']] ?? 99)
-                <=> ($statusPriority[$b['status']] ?? 99);
+        usort($comparison, function ($a, $b) {
+            $priority = ['SAMA' => 1, 'MINUS' => 2, 'TURUN' => 3, 'NAIK' => 4, 'TIDAK LENGKAP' => 5];
+            return $priority[$a['status']] <=> $priority[$b['status']];
         });
 
         session([
@@ -229,15 +247,30 @@ class EquityReportController extends Controller
         return $result;
     }
 
-    private function parseNumber(string $value): float
+    private function parseNumber($value): ?float
     {
-        return (float) str_replace(' ', '', trim($value));
+        if ($value === null) {
+            return null;
+        }
+
+        // Trim + normalisasi spasi (termasuk &nbsp;)
+        $value = trim($value);
+        $value = str_replace(["\xc2\xa0", ' '], '', $value);
+
+        // Validasi angka (boleh negatif & desimal)
+        if (!preg_match('/^-?\d+(\.\d+)?$/', $value)) {
+            return null;
+        }
+
+        return (float) $value;
     }
 
     private function parseEquityReport(string $html): array
     {
         $data = [
             'periode' => null,
+            'from_date' => null,
+            'to_date' => null,
             'rows'    => []
         ];
 
@@ -245,26 +278,29 @@ class EquityReportController extends Controller
 
         $dom = new \DOMDocument();
         $dom->loadHTML($html);
-
         $xpath = new \DOMXPath($dom);
 
         // ==================================================
         // 1️⃣ PARSE PERIODE / TAHUN
         // ==================================================
-        $ths = $xpath->query('//th');
+        $trs = $xpath->query('//tr');
 
-        foreach ($ths as $th) {
-            $text = trim($th->textContent);
+        foreach ($trs as $tr) {
+            $text = trim(preg_replace('/\s+/', ' ', $tr->textContent));
 
-            // Ambil dari: from '2024.03.14'
-            if (preg_match("/from\s+'(\d{4})\.\d{2}\.\d{2}'/", $text, $m)) {
-                $data['periode'] = $m[1]; // 2024
-                break;
-            }
-
-            // (opsional) fallback dari: SPA Maret 2024
-            if (preg_match("/SPA\s+.+?\s+(\d{4})/", $text, $m)) {
-                $data['periode'] = $m[1];
+            /**
+             * Cocok untuk:
+             * from 2025.01.01 to 2025.01.01
+             * from '2024.03.14' to '2024.03.14'
+             */
+            if (preg_match(
+                "/from\s+'?(\d{4}\.\d{2}\.\d{2})'?\s+to\s+'?(\d{4}\.\d{2}\.\d{2})'?/i",
+                $text,
+                $m
+            )) {
+                $data['from_date'] = $m[1]; // 2025.01.01
+                $data['to_date']   = $m[2]; // 2025.01.01
+                $data['periode']   = substr($m[1], 0, 4); // ambil tahun
                 break;
             }
         }
@@ -288,15 +324,15 @@ class EquityReportController extends Controller
             $data['rows'][$login] = [
                 'login'       => $login,
                 'name'        => trim($cells->item(1)->textContent),
-                'deposit'     => $this->parseNumber($cells->item(2)->textContent),
-                'credit'      => $this->parseNumber($cells->item(3)->textContent),
-                'commission'  => $this->parseNumber($cells->item(4)->textContent),
-                'swap'        => $this->parseNumber($cells->item(5)->textContent),
-                'profit'      => $this->parseNumber($cells->item(6)->textContent),
-                'interest'    => $this->parseNumber($cells->item(7)->textContent),
-                'balance'     => $this->parseNumber($cells->item(8)->textContent),
-                'floating_pl' => $this->parseNumber($cells->item(9)->textContent),
-                'equity'      => $this->parseNumber($cells->item(10)->textContent),
+                'pl_balance'     => $this->parseNumber($cells->item(2)->textContent),
+                'closed_pl'      => $this->parseNumber($cells->item(3)->textContent),
+                'deposit'  => $this->parseNumber($cells->item(4)->textContent),
+                'balance'        => $this->parseNumber($cells->item(5)->textContent),
+                'floating_pl'      => $this->parseNumber($cells->item(6)->textContent),
+                'credit'    => $this->parseNumber($cells->item(7)->textContent),
+                'equity'     => $this->parseNumber($cells->item(8)->textContent),
+                'margin' => $this->parseNumber($cells->item(9)->textContent),
+                'free_margin'      => $this->parseNumber($cells->item(10)->textContent),
                 'currency'    => trim($cells->item(11)->textContent),
             ];
         }

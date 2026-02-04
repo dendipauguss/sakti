@@ -36,7 +36,10 @@
                                             <th>Nama</th>
                                             <th>Equity File 1</th>
                                             <th>Equity File 2</th>
+                                            <th>Floating PL 1</th>
+                                            <th>Floating PL 2</th>
                                             <th>Selisih</th>
+                                            <th>Satuan</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -50,7 +53,12 @@
                                                 </td>
                                                 <td>{{ $data['equity_file2'] !== null ? number_format($data['equity_file2'], 2) : '-' }}
                                                 </td>
+                                                <td>{{ $data['floating_pl1'] !== null ? number_format($data['floating_pl1'], 2) : '-' }}
+                                                </td>
+                                                <td>{{ $data['floating_pl2'] !== null ? number_format($data['floating_pl2'], 2) : '-' }}
+                                                </td>
                                                 <td>{{ number_format($data['selisih'], 2) }}</td>
+                                                <td>{{ $data['currency'] }}</td>
                                                 <td>
                                                     @if ($data['status'] == 'NAIK')
                                                         <span class="badge bg-info">
