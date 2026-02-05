@@ -247,6 +247,33 @@ class EquityReportController extends Controller
         return $result;
     }
 
+    private function normalizeHeader(string $text): string
+    {
+        $text = strtolower(trim($text));
+        $text = str_replace(['/', ' '], '_', $text);
+        $text = preg_replace('/_+/', '_', $text);
+
+        return match ($text) {
+            'login' => 'login',
+            'name', 'group' => 'name',
+            'deposit' => 'deposit',
+            'credit' => 'credit',
+            'commission' => 'commission',
+            'swap' => 'swap',
+            'profit' => 'profit',
+            'interest' => 'interest',
+            'balance' => 'balance',
+            'floating_pl', 'floating_p_l' => 'floating_pl',
+            'equity' => 'equity',
+            'margin' => 'margin',
+            'free_margin' => 'free_margin',
+            'currency', 'bank' => 'currency',
+            'pl_balance' => 'pl_balance',
+            'closed_pl' => 'closed_pl',
+            default => ''
+        };
+    }
+
     private function parseNumber($value): ?float
     {
         if ($value === null) {
@@ -257,8 +284,16 @@ class EquityReportController extends Controller
         $value = trim($value);
         $value = str_replace(["\xc2\xa0", ' '], '', $value);
 
-        // Validasi angka (boleh negatif & desimal)
-        if (!preg_match('/^-?\d+(\.\d+)?$/', $value)) {
+        // Handle format (49.61) => -49.61
+        if (preg_match('/^\(([\d.]+)\)$/', $value, $m)) {
+            return -(float) $m[1];
+        }
+
+        // Hapus tanda + jika ada
+        $value = ltrim($value, '+');
+
+        // Validasi angka (negatif & desimal)
+        if (!is_numeric($value)) {
             return null;
         }
 
@@ -310,30 +345,68 @@ class EquityReportController extends Controller
         // ==================================================
         $rows = $xpath->query('//tr');
 
+        $headerMap = [];
+        $data['rows'] = [];
+
         foreach ($rows as $row) {
 
-            $cells = $xpath->query('.//td', $row);
+            $cells = $xpath->query('./td', $row);
+            if ($cells->length < 5) continue;
 
-            if ($cells->length !== 12) {
+            // ============================
+            // 1️⃣ DETEKSI HEADER
+            // ============================
+            if (empty($headerMap)) {
+                $tmp = [];
+
+                foreach ($cells as $i => $cell) {
+                    $col = $this->normalizeHeader($cell->textContent);
+                    if ($col !== '') {
+                        $tmp[$col] = $i;
+                    }
+                }
+
+                // Wajib punya login & equity
+                if (isset($tmp['login']) && isset($tmp['equity'])) {
+                    $headerMap = $tmp;
+                }
+
                 continue;
             }
 
-            $login = trim($cells->item(0)->textContent);
+            // ============================
+            // 2️⃣ DATA ROW
+            // ============================
+            $loginIndex = $headerMap['login'];
+            $login = trim($cells->item($loginIndex)->textContent);
+
             if (!is_numeric($login)) continue;
 
+            $get = function ($key) use ($cells, $headerMap) {
+                if (!isset($headerMap[$key])) return null;
+                return $this->parseNumber(
+                    $cells->item($headerMap[$key])->textContent ?? null
+                );
+            };
+
+            $getText = function ($key) use ($cells, $headerMap) {
+                if (!isset($headerMap[$key])) return null;
+                return trim($cells->item($headerMap[$key])->textContent);
+            };
+
             $data['rows'][$login] = [
-                'login'       => $login,
-                'name'        => trim($cells->item(1)->textContent),
-                'pl_balance'     => $this->parseNumber($cells->item(2)->textContent),
-                'closed_pl'      => $this->parseNumber($cells->item(3)->textContent),
-                'deposit'  => $this->parseNumber($cells->item(4)->textContent),
-                'balance'        => $this->parseNumber($cells->item(5)->textContent),
-                'floating_pl'      => $this->parseNumber($cells->item(6)->textContent),
-                'credit'    => $this->parseNumber($cells->item(7)->textContent),
-                'equity'     => $this->parseNumber($cells->item(8)->textContent),
-                'margin' => $this->parseNumber($cells->item(9)->textContent),
-                'free_margin'      => $this->parseNumber($cells->item(10)->textContent),
-                'currency'    => trim($cells->item(11)->textContent),
+                'login'        => $login,
+                'name'         => $getText('name'),
+                'pl_balance'   => $get('pl_balance'),
+                'closed_pl'    => $get('closed_pl'),
+                'deposit'      => $get('deposit'),
+                'balance'      => $get('balance'),
+                'floating_pl'  => $get('floating_pl'),
+                'credit'       => $get('credit'),
+                'equity'       => $get('equity'),
+                'margin'       => $get('margin'),
+                'free_margin'  => $get('free_margin'),
+                'currency'     => $getText('currency'),
             ];
         }
 
