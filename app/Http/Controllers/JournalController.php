@@ -208,6 +208,59 @@ class JournalController extends Controller
         ]);
     }
 
+    public function uploadMultiJournal(Request $req)
+    {
+        $req->validate([
+            'files.*' => 'required|mimes:htm,html,txt'
+        ]);
+
+        $duplicates = $this->uploadProcessIPPublikSama(
+            $req->file('files')
+        );
+
+        dd($duplicates);
+
+        return view('journal.ip_duplikat_result', [
+            'duplicates' => $duplicates
+        ]);
+    }
+
+    public function uploadProcessIPPublikSama(array $files): array
+    {
+        $ipMap = [];
+
+        foreach ($files as $file) {
+
+            $filename = $file->getClientOriginalName();
+            $content  = $file->get();
+            $lines    = explode("\n", $content);
+
+            foreach ($lines as $line) {
+
+                $parsed = $this->parseIPFromJournalLine($line);
+
+                if (!$parsed) continue;
+
+                $ip = $parsed['ip'];
+
+                $ipMap[$ip][] = [
+                    'no_akun' => $parsed['no_akun'],
+                    'tanggal' => $parsed['tanggal'],
+                    'waktu'   => $parsed['waktu'],
+                    'file'    => $filename,
+                    'raw'     => $parsed['raw'],
+                ];
+            }
+        }
+
+        // ==================================================
+        // 🔴 AMBIL HANYA IP YANG MUNCUL LEBIH DARI 1 FILE / AKUN
+        // ==================================================
+        return array_filter($ipMap, function ($logs) {
+            return count($logs) > 1;
+        });
+    }
+
     public function uploadProcessJournalHistoryStatement() {}
 
     public function saveMarket()
@@ -333,6 +386,34 @@ class JournalController extends Controller
     // =====================================================
     // ⭐ HELPER FUNCTIONS
     // =====================================================
+
+    private function parseIPFromJournalLine(string $line): ?array
+    {
+        $line = trim(strip_tags($line));
+
+        // Contoh baris:
+        // 2024.03.14 18:15:08.204 180.242.68.160 '5700120': ...
+
+        $regex = '/
+        (?<tanggal>\d{4}\.\d{2}\.\d{2})\s+
+        (?<waktu>\d{2}:\d{2}:\d{2})\.\d{3}\s+
+        (?<ip>\d{1,3}(?:\.\d{1,3}){3})
+        .*?
+        \'(?<akun>\d{5,})\'
+    /x';
+
+        if (!preg_match($regex, $line, $m)) {
+            return null;
+        }
+
+        return [
+            'tanggal' => $m['tanggal'],
+            'waktu'   => $m['waktu'],
+            'ip'      => $m['ip'],
+            'no_akun' => $m['akun'],
+            'raw'     => $line
+        ];
+    }
 
     private function parseIPPerusahaanFromHTML(string $html, array $ipPerusahaan): array
     {

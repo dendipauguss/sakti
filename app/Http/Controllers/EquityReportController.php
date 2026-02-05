@@ -154,7 +154,7 @@ class EquityReportController extends Controller
             // 🔴 FILTER TAMPILAN
             $bolehTampil =
                 $status === 'SAMA' || $status === 'MINUS'
-                || ($status === 'TURUN' && $val2 < 0);
+                || $status === 'TIDAK LENGKAP' || $status === 'NAIK' || $status === 'TURUN' || ($status === 'TURUN' && $val2 < 0);
 
             if (!$bolehTampil) {
                 continue;

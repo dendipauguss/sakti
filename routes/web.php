@@ -33,6 +33,7 @@ Route::middleware('auth', 'user-aktif')->group(function () {
     Route::get('/journal/upload', [JournalController::class, 'uploadPage'])->name('journal.upload');
     Route::post('/journal/upload', [JournalController::class, 'uploadProcessJournal'])->name('journal.upload.process');
     Route::post('/journal/compare', [JournalController::class, 'uploadProcessJournalHistoryStatement'])->name('journal.upload.compare');
+    Route::post('/journal/upload/multi', [JournalController::class, 'uploadMultiJournal'])->name('journal.upload.multi');
     Route::get('/journal', [JournalController::class, 'index'])->name('journal.index');
     Route::get('/journal/category/{category}', [JournalController::class, 'categoryDetail'])->name('journal.category');
     Route::get('/journal/export-pdf', [JournalController::class, 'exportPDF'])->name('journal.pdf');
