@@ -218,47 +218,18 @@ class JournalController extends Controller
             $req->file('files')
         );
 
-        dd($duplicates);
+        // dd($duplicates); // --- IGNORE ---
 
-        return view('journal.ip_duplikat_result', [
-            'duplicates' => $duplicates
+        $breadcrumbs = [
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Journal Report', 'url' => route('journal.index')],
+            ['label' => 'Hasil Parsing Journal']
+        ];
+
+        return view('journal.same_ip', [
+            'duplicates' => $duplicates,
+            'breadcrumbs' => $breadcrumbs
         ]);
-    }
-
-    public function uploadProcessIPPublikSama(array $files): array
-    {
-        $ipMap = [];
-
-        foreach ($files as $file) {
-
-            $filename = $file->getClientOriginalName();
-            $content  = $file->get();
-            $lines    = explode("\n", $content);
-
-            foreach ($lines as $line) {
-
-                $parsed = $this->parseIPFromJournalLine($line);
-
-                if (!$parsed) continue;
-
-                $ip = $parsed['ip'];
-
-                $ipMap[$ip][] = [
-                    'no_akun' => $parsed['no_akun'],
-                    'tanggal' => $parsed['tanggal'],
-                    'waktu'   => $parsed['waktu'],
-                    'file'    => $filename,
-                    'raw'     => $parsed['raw'],
-                ];
-            }
-        }
-
-        // ==================================================
-        // 🔴 AMBIL HANYA IP YANG MUNCUL LEBIH DARI 1 FILE / AKUN
-        // ==================================================
-        return array_filter($ipMap, function ($logs) {
-            return count($logs) > 1;
-        });
     }
 
     public function uploadProcessJournalHistoryStatement() {}
@@ -387,32 +358,80 @@ class JournalController extends Controller
     // ⭐ HELPER FUNCTIONS
     // =====================================================
 
-    private function parseIPFromJournalLine(string $line): ?array
+    private function cleanDuplicateIPPerFile(array $ipMap): array
     {
-        $line = trim(strip_tags($line));
+        $clean = [];
 
-        // Contoh baris:
-        // 2024.03.14 18:15:08.204 180.242.68.160 '5700120': ...
+        foreach ($ipMap as $ip => $logs) {
 
-        $regex = '/
-        (?<tanggal>\d{4}\.\d{2}\.\d{2})\s+
-        (?<waktu>\d{2}:\d{2}:\d{2})\.\d{3}\s+
-        (?<ip>\d{1,3}(?:\.\d{1,3}){3})
-        .*?
-        \'(?<akun>\d{5,})\'
-    /x';
+            foreach ($logs as $row) {
 
-        if (!preg_match($regex, $line, $m)) {
-            return null;
+                $file = $row['file'];
+
+                // simpan hanya 1 record per file
+                if (!isset($clean[$ip][$file])) {
+                    $clean[$ip][$file] = $row;
+                }
+            }
         }
 
-        return [
-            'tanggal' => $m['tanggal'],
-            'waktu'   => $m['waktu'],
-            'ip'      => $m['ip'],
-            'no_akun' => $m['akun'],
-            'raw'     => $line
-        ];
+        return $clean;
+    }
+
+    private function uploadProcessIPPublikSama(array $files): array
+    {
+        $ipMap = [];
+
+        foreach ($files as $file) {
+
+            $filename = $file->getClientOriginalName();
+            $html = $file->get();
+
+            libxml_use_internal_errors(true);
+
+            $dom = new \DOMDocument();
+            $dom->loadHTML($html);
+
+            $xpath = new \DOMXPath($dom);
+
+            // Ambil semua baris TR
+            $rows = $xpath->query('//tr');
+
+            foreach ($rows as $row) {
+
+                $cells = $xpath->query('.//td', $row);
+
+                // Format journal biasanya 3 kolom
+                if ($cells->length < 2) continue;
+
+                $datetime = trim($cells->item(0)->textContent);
+                $ip       = trim($cells->item(1)->textContent);
+                $raw      = trim($row->textContent);
+
+                // Validasi datetime & IP
+                if (!preg_match('/^\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2}/', $datetime)) {
+                    continue;
+                }
+
+                if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+                    continue;
+                }
+
+                [$tanggal, $waktu] = explode(' ', $datetime);
+
+                $ipMap[$ip][] = [
+                    'tanggal' => $tanggal,
+                    'waktu'   => $waktu,
+                    'file'    => $filename,
+                    'raw'     => $raw,
+                ];
+            }
+        }
+
+        $ipMap = $this->cleanDuplicateIPPerFile($ipMap);
+
+        // Hanya IP yang muncul lebih dari sekali
+        return array_filter($ipMap, fn($logs) => count($logs) > 1);
     }
 
     private function parseIPPerusahaanFromHTML(string $html, array $ipPerusahaan): array

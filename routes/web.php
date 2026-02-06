@@ -12,7 +12,11 @@ use App\Http\Controllers\JournalWrongPriceController;
 use App\Http\Controllers\EquityReportController;
 use App\Http\Controllers\JournalIPPerusahaanController;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', function () {
+    return redirect()->route('home');
+});
+
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/auth/google', [AuthController::class, 'login_with_google']);
@@ -39,6 +43,7 @@ Route::middleware('auth', 'user-aktif')->group(function () {
     Route::get('/journal/export-pdf', [JournalController::class, 'exportPDF'])->name('journal.pdf');
     Route::post('/journal/save/ip-perusahaan', [JournalController::class, 'saveIPPerusahaan'])->name('journal.save.ip-perusahaan');
     Route::post('/journal/save/all', [JournalController::class, 'saveAll'])->name('journal.save.all');
+    Route::post('/journal/save/ip-publik', [JournalController::class, 'saveIPPublik'])->name('journal.save.ip-publik');
     Route::post('/journal/save/market', [JournalController::class, 'saveMarket'])->name('journal.save.market');
     Route::post('/journal/save/wrong', [JournalController::class, 'saveWrong'])->name('journal.save.wrong');
     Route::post('/journal/save/credit', [JournalController::class, 'saveCredit'])->name('journal.save.credit');
