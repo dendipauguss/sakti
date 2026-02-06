@@ -360,22 +360,23 @@ class JournalController extends Controller
 
     private function cleanDuplicateIPPerFile(array $ipMap): array
     {
-        $clean = [];
-
         foreach ($ipMap as $ip => $logs) {
 
-            foreach ($logs as $row) {
+            $unique = [];
 
-                $file = $row['file'];
+            foreach ($logs as $log) {
 
-                // simpan hanya 1 record per file
-                if (!isset($clean[$ip][$file])) {
-                    $clean[$ip][$file] = $row;
+                $key = $log['file'] . '-' . $log['no_akun'];
+
+                if (!isset($unique[$key])) {
+                    $unique[$key] = $log;
                 }
             }
+
+            $ipMap[$ip] = array_values($unique);
         }
 
-        return $clean;
+        return $ipMap;
     }
 
     private function uploadProcessIPPublikSama(array $files): array
@@ -391,47 +392,61 @@ class JournalController extends Controller
 
             $dom = new \DOMDocument();
             $dom->loadHTML($html);
-
             $xpath = new \DOMXPath($dom);
 
-            // Ambil semua baris TR
             $rows = $xpath->query('//tr');
 
             foreach ($rows as $row) {
 
                 $cells = $xpath->query('.//td', $row);
 
-                // Format journal biasanya 3 kolom
-                if ($cells->length < 2) continue;
+                // Format journal: datetime | IP | message
+                if ($cells->length < 3) continue;
 
                 $datetime = trim($cells->item(0)->textContent);
                 $ip       = trim($cells->item(1)->textContent);
+                $message  = trim($cells->item(2)->textContent);
                 $raw      = trim($row->textContent);
 
-                // Validasi datetime & IP
+                // Validasi datetime
                 if (!preg_match('/^\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2}/', $datetime)) {
                     continue;
                 }
 
+                // Validasi IP
                 if (!filter_var($ip, FILTER_VALIDATE_IP)) {
                     continue;
                 }
 
-                [$tanggal, $waktu] = explode(' ', $datetime);
+                // Ambil NO AKUN dari message
+                $noAkun = null;
+                if (preg_match("/'(\d{5})'/", $message, $m)) {
+                    $noAkun = $m[1];
+                }
+
+                [$tanggal, $waktuFull] = explode(' ', $datetime);
+                $waktu = substr($waktuFull, 0, 8);
 
                 $ipMap[$ip][] = [
                     'tanggal' => $tanggal,
                     'waktu'   => $waktu,
+                    'no_akun' => $noAkun,
                     'file'    => $filename,
                     'raw'     => $raw,
                 ];
             }
         }
 
+        // Bersihkan duplikat dalam satu file
         $ipMap = $this->cleanDuplicateIPPerFile($ipMap);
 
-        // Hanya IP yang muncul lebih dari sekali
-        return array_filter($ipMap, fn($logs) => count($logs) > 1);
+        // 🔥 Ambil hanya IP yang dipakai lebih dari 1 akun
+        return array_filter($ipMap, function ($logs) {
+
+            $akun = array_unique(array_filter(array_column($logs, 'no_akun')));
+
+            return count($akun) > 1;
+        });
     }
 
     private function parseIPPerusahaanFromHTML(string $html, array $ipPerusahaan): array
