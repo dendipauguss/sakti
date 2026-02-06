@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-coreui-theme="dark">
+<html lang="en" data-coreui-theme="light">
 
     <head>
         <script type="text/javascript" src="https://beacon-v2.helpscout.net/static/js/vendor.0c72b11a.js"></script>

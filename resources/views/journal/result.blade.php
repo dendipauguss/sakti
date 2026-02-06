@@ -4,7 +4,7 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <div class="btn-group">
-                    <a href="" onclick="window.history.back()" class="btn btn-sm btn-secondary">
+                    <a href="{{ route('journal.upload') }}" class="btn btn-sm btn-secondary">
                         <svg class="icon me-2">
                             <use xlink:href="{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-left">
                             </use>
@@ -224,7 +224,9 @@
                                     <thead class="table-primary">
                                         <tr>
                                             <th>#</th>
+                                            <th>Tanggal</th>
                                             <th>No Akun</th>
+                                            <th>No Tiket</th>
                                             <th>Confirm</th>
                                             <th>Close Order</th>
                                             <th>Exec Type</th>
@@ -238,7 +240,13 @@
                                             <tr>
                                                 <td>{{ $i + 1 }}</td>
                                                 <td>
+                                                    {{ $row['tanggal'] }}
+                                                </td>
+                                                <td>
                                                     {{ $row['no_akun'] }}
+                                                </td>
+                                                <td>
+                                                    {{ $row['no_tiket'] }}
                                                 </td>
                                                 <td>
                                                     {{ $row['confirm'] }}
