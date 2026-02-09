@@ -99,12 +99,12 @@ class EquityReportController extends Controller
         // ==================================================
         // 3️⃣ SIMPAN METADATA UPLOAD (OPSIONAL)
         // ==================================================
-        $upload = EquityReport::create([
-            'file_1_name' => $file1->getClientOriginalName(),
-            'file_2_name' => $file2->getClientOriginalName(),
-            'periode_1' => $from_date_1,
-            'periode_2' => $from_date_2,
-        ]);
+        // $upload = EquityReport::create([
+        //     'file_1_name' => $file1->getClientOriginalName(),
+        //     'file_2_name' => $file2->getClientOriginalName(),
+        //     'periode_1' => $from_date_1,
+        //     'periode_2' => $from_date_2,
+        // ]);
 
         $comparison = [];
 

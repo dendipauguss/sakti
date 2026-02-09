@@ -363,8 +363,8 @@
                         infoFiltered: "(difilter dari total _MAX_ data)",
                         search: "Cari:",
                         paginate: {
-                            next: "<svg class='icon icon-lg' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-right'></use></svg>",
-                            previous: "<svg class='icon icon-lg' width='16' height='16'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-left'></use></svg>"
+                            next: "<svg class='icon'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-right'></use></svg>",
+                            previous: "<svg class='icon'><use xlink:href='{{ env('THM_LINK') }}/vendors/@coreui/icons/svg/free.svg#cil-arrow-thick-left'></use></svg>"
                         }
                     }
                 });

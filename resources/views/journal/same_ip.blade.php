@@ -33,7 +33,6 @@
                         <h5 class="mb-0">Hasil Pencarian IP Publik Sama Antar Journal Report Berbeda</h5>
                     </div>
                     <div class="card-body">
-
                         <table class="table table-bordered table-striped" id="dataTables">
                             <thead class="table-dark">
                                 <tr>
@@ -41,6 +40,7 @@
                                     <th>IP</th>
                                     <th>Jumlah File</th>
                                     <th>List File</th>
+                                    <th>Baris Log</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -51,7 +51,12 @@
                                         <td>{{ count($files) }}</td>
                                         <td>
                                             @foreach ($files as $file => $row)
-                                                <div>{{ $file }}</div>
+                                                <div>{{ $row['file'] }}</div>
+                                            @endforeach
+                                        </td>
+                                        <td>
+                                            @foreach ($files as $file => $row)
+                                                <div>Baris ke-{{ $file + 1 }} (<u>{{ $row['raw'] }}</u>)</div>
                                             @endforeach
                                         </td>
                                     </tr>
@@ -64,7 +69,6 @@
                                 @endforelse
                             </tbody>
                         </table>
-
                         <form action="{{ route('journal.save.ip-publik') }}" method="POST" class="mt-3">
                             @csrf
                             <button class="btn btn-outline-success btn-sm mb-2">

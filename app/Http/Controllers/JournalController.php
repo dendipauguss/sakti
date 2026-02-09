@@ -420,7 +420,7 @@ class JournalController extends Controller
 
                 // Ambil NO AKUN dari message
                 $noAkun = null;
-                if (preg_match("/'(\d{5})'/", $message, $m)) {
+                if (preg_match("/'(\d{5,6})'/", $message, $m)) {
                     $noAkun = $m[1];
                 }
 
