@@ -357,7 +357,7 @@
                     searching: true,
                     language: {
                         lengthMenu: "Tampilkan _MENU_ data per halaman",
-                        zeroRecords: "Tidak ada data ditemukan",
+                        zeroRecords: "<div class='text-center w-100'>Tidak ada data ditemukan</div>",
                         info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
                         infoEmpty: "Tidak ada data tersedia",
                         infoFiltered: "(difilter dari total _MAX_ data)",

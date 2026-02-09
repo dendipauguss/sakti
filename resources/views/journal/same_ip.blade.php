@@ -33,40 +33,35 @@
                         <h5 class="mb-0">Hasil Pencarian IP Publik Sama Antar Journal Report Berbeda</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-bordered table-striped" id="dataTables">
+                        <table class="table table-bordered table-striped table-hover" id="dataTables">
                             <thead class="table-dark">
                                 <tr>
                                     <th>No</th>
                                     <th>IP</th>
                                     <th>Jumlah File</th>
-                                    <th>List File</th>
-                                    <th>Baris Log</th>
+                                    <th>Detail File</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($duplicates as $ip => $files)
+                                @foreach ($duplicates as $ip => $files)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $ip }}</td>
                                         <td>{{ count($files) }}</td>
                                         <td>
-                                            @foreach ($files as $file => $row)
-                                                <div>{{ $row['file'] }}</div>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @foreach ($files as $file => $row)
-                                                <div>Baris ke-{{ $file + 1 }} (<u>{{ $row['raw'] }}</u>)</div>
-                                            @endforeach
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center text-muted">
-                                            Tidak ditemukan baris journal dengan IP Publik yang sama
+                                            <ul class="list-group">
+                                                @foreach ($files as $file => $row)
+                                                    <li class="list-group-item bg-transparent border-0">Tanggal Waktu :
+                                                        <b>{{ $row['tanggal'] }}
+                                                            {{ $row['waktu'] }}</b> - No Akun : <b>{{ $row['no_akun'] }}</b>
+                                                        - File :
+                                                        <b>{{ $row['file'] }}</b>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
                                         </td>
                                     </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
                         <form action="{{ route('journal.save.ip-publik') }}" method="POST" class="mt-3">

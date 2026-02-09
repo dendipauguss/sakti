@@ -9,13 +9,6 @@
                             Pengecekan IP Perusahaan, Credit Facility, Market Execution, dan Harga Tidak Sesuai</span>
                     </div>
                     <div class="card-body">
-                        @if (session('success'))
-                            <div class="alert alert-success">{{ session('success') }}</div>
-                        @endif
-
-                        @if (session('error'))
-                            <div class="alert alert-danger">{{ session('error') }}</div>
-                        @endif
 
                         <form action="{{ route('journal.upload.process') }}" method="POST" enctype="multipart/form-data">
                             @csrf
@@ -47,13 +40,6 @@
                             Perbandingan History Statement dan Journal Report Nasabah</span>
                     </div>
                     <div class="card-body">
-                        @if (session('success'))
-                            <div class="alert alert-success">{{ session('success') }}</div>
-                        @endif
-
-                        @if (session('error'))
-                            <div class="alert alert-danger">{{ session('error') }}</div>
-                        @endif
 
                         <form action="{{ route('journal.upload.compare') }}" method="POST" enctype="multipart/form-data">
                             @csrf
@@ -81,13 +67,6 @@
                             Pencarian IP Publik yang sama dalam beberapa Journal Report Nasabah</span>
                     </div>
                     <div class="card-body">
-                        @if (session('success'))
-                            <div class="alert alert-success">{{ session('success') }}</div>
-                        @endif
-
-                        @if (session('error'))
-                            <div class="alert alert-danger">{{ session('error') }}</div>
-                        @endif
 
                         <form action="{{ route('journal.upload.multi') }}" method="POST" enctype="multipart/form-data">
                             @csrf

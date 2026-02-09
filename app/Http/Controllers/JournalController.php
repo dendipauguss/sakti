@@ -11,6 +11,7 @@ use App\Models\JournalUpload;
 use App\Models\JournalWrongPrice;
 use App\Models\JournalCreditFacility;
 use App\Models\JournalIPPerusahaan;
+use App\Models\JournalIPPublik;
 use Carbon\Carbon;
 
 class JournalController extends Controller
@@ -50,17 +51,12 @@ class JournalController extends Controller
     {
         $req->validate([
             'file' => 'required|mimes:htm,html,txt',
-            'ip_perusahaan' => 'required|string',
+            'ip_perusahaan' => 'nullable|string',
         ], [
             'ip_perusahaan.required' => 'Kolom IP Perusahaan tidak boleh kosong kakak.'
         ]);
 
-        $file = $req->file('file')->get();
-
-        $rawLines = explode("\n", $file);
-
-        // Clean html tag
-        $lines = array_map(fn($l) => trim(strip_tags($l)), $rawLines);
+        $filePath = $req->file('file')->getRealPath();
 
         $creditFacility = [];
         $marketExecution = [];
@@ -71,107 +67,101 @@ class JournalController extends Controller
         // ======================            
 
         $ipPerusahaan = array_map('trim', explode(',', $req->ip_perusahaan));
-        $ipCompanyLogs = $this->parseIPPerusahaanFromHTML($file, $ipPerusahaan);
+        $ipCompanyLogs = $this->parseIPPerusahaanStream($filePath, $ipPerusahaan);
 
-        for ($i = 0; $i < count($lines); $i++) {
+        $handle = fopen($filePath, 'r');
+        $prevLine = null;
 
-            $line = trim($lines[$i]);
+        $totalBaris = 0;
 
-            // ======================
-            // 2) CREDIT FACILITY
-            // ======================
+        while (($line = fgets($handle)) !== false) {
+            $totalBaris++;
 
-            $parsed = $this->parseCreditFacilityLine($line);
-            if ($parsed !== null) {
-                $creditFacility[] = $parsed;
+            $line = trim(strip_tags($line));
+
+            if ($line === '') {
+                $prevLine = null;
+                continue;
             }
 
-            // ==================================================
-            // 3) WAKTU EKSEKUSI MARKET  (request → confirm)
-            // ==================================================
-            if (isset($lines[$i + 1])) {
+            // ======================
+            // CREDIT FACILITY
+            // ======================
 
-                $nextLine = trim($lines[$i + 1]);
+            if (stripos($line, 'changed credit') !== false) {
+                $parsed = $this->parseCreditFacilityLine($line);
+                if ($parsed !== null) {
+                    $creditFacility[] = $parsed;
+                }
+            }
+
+            if ($prevLine) {
+
+                // ==================================================
+                // WAKTU EKSEKUSI MARKET  (request → confirm)
+                // ==================================================
 
                 if (
-                    str_contains(strtolower($line), 'request') &&
-                    str_contains(strtolower($nextLine), 'confirm')
+                    stripos($prevLine, 'request') !== false &&
+                    stripos($line, 'confirm') !== false
                 ) {
 
-                    // Ambil timestamp
-                    $time1 = $this->extractTime($line);      // request
-                    $time2 = $this->extractTime($nextLine);  // confirm
-                    $info = $this->extractInfo($line); // dari request line
+                    $time1 = $this->extractTime($prevLine);
+                    $time2 = $this->extractTime($line);
+                    $info  = $this->extractInfo($prevLine);
 
-                    if ($time1 && $time2) {
+                    if ($time1 && $time2 && !empty($info['no_tiket'])) {
 
-                        // Konversi ke microsecond timestamp
                         $ts1 = intval($time1->format("U")) * 1_000_000 + intval($time1->format("u"));
                         $ts2 = intval($time2->format("U")) * 1_000_000 + intval($time2->format("u"));
 
-                        // Selisih dalam microdetik
-                        $diffMicro = $ts2 - $ts1;
+                        $diffMicro  = $ts2 - $ts1;
+                        $diffSecond = $diffMicro / 1_000_000;
 
-                        // Konversi ke detik float
-                        $diffSeconds = $diffMicro / 1_000_000;
-
-                        if ($diffSeconds > 1 && !empty($info['no_tiket'])) {
+                        if ($diffSecond > 1) {
                             $marketExecution[] = [
                                 'no_akun' => $info['no_akun'],
                                 'no_tiket' => $info['no_tiket'],
                                 'tanggal' => $info['tanggal'],
-
+                                'delay_seconds' => $diffSecond,
+                                'delay_formatted' => $this->formatDelay($diffSecond),
+                                'diff_microseconds' => $diffMicro,
                                 'request_time' => $ts1,
                                 'confirm_time' => $ts2,
-                                'diff_microseconds' => $diffMicro,
-                                'delay_seconds' => $diffSeconds,
-                                'delay_formatted' => $this->formatDelay($diffSeconds),
-
-                                'request_raw' => $line,
-                                'confirm_raw' => $nextLine,
+                                'request_raw' => $prevLine,
+                                'confirm_raw' => $line,
                             ];
                         }
                     }
                 }
-            }
 
-            // ==================================================
-            // 4) HARGA TIDAK SESUAI  (confirm close → close order)
-            // ==================================================
-            if (isset($lines[$i + 1])) {
-
-                $line1 = $line;
-                $line2 = trim($lines[$i + 1]);
+                // ==================================================
+                // HARGA TIDAK SESUAI  (confirm close → close order)
+                // ==================================================
 
                 if (
-                    str_contains(strtolower($line1), 'confirm') &&
-                    str_contains(strtolower($line1), 'close') &&
-                    str_contains(strtolower($line2), 'close order')
+                    stripos($prevLine, 'confirm') !== false &&
+                    stripos($prevLine, 'close') !== false &&
+                    stripos($line, 'close order') !== false
                 ) {
 
-                    $execType = $this->extractExecType($line1); // buy / sell
-                    $completed = $this->extractCompletedPrice($line2);
-                    [$bid, $ask] = $this->extractBidAsk($line1);
-                    $info = $this->extractInfo($line); // dari request line
-                    $no_tiket = $this->extractInfo($line2);
+                    $execType = $this->extractExecType($prevLine);
+                    $completed = $this->extractCompletedPrice($line);
+                    [$bid, $ask] = $this->extractBidAsk($prevLine);
+                    $info = $this->extractInfo($prevLine);
+                    $no_tiket = $this->extractInfo($line);
 
-                    $mismatch = false;
-
-                    if ($execType == 'buy' && $completed != $bid) {
-                        $mismatch = true;
-                    }
-
-                    if ($execType == 'sell' && $completed != $ask) {
-                        $mismatch = true;
-                    }
+                    $mismatch =
+                        ($execType === 'buy'  && $completed != $bid) ||
+                        ($execType === 'sell' && $completed != $ask);
 
                     if ($mismatch && !empty($info['no_tiket'])) {
                         $wrongPrice[] = [
                             'no_akun' => $info['no_akun'],
                             'no_tiket' => $no_tiket['no_tiket'],
                             'tanggal' => $info['tanggal'],
-                            'confirm' => $line1,
-                            'close_order' => $line2,
+                            'confirm' => $prevLine,
+                            'close_order' => $line,
                             'exec_type' => $execType,
                             'completed' => $completed,
                             'bid' => $bid,
@@ -180,7 +170,11 @@ class JournalController extends Controller
                     }
                 }
             }
+
+            $prevLine = $line;
         }
+
+        fclose($handle);
 
         session([
             'parsed_credit' => $creditFacility,
@@ -198,7 +192,7 @@ class JournalController extends Controller
 
         return view('journal.result', [
             'title' => 'Hasil Parsing Journal',
-            'parsed' => $lines,
+            'parsed' => $totalBaris,
             'creditFacility' => $creditFacility,
             'marketExecution' => $marketExecution,
             'wrongPrice' => $wrongPrice,
@@ -226,6 +220,8 @@ class JournalController extends Controller
             ['label' => 'Hasil Parsing Journal']
         ];
 
+        session(['parsed_ip_sama' => $duplicates]);
+
         return view('journal.same_ip', [
             'duplicates' => $duplicates,
             'breadcrumbs' => $breadcrumbs
@@ -233,6 +229,26 @@ class JournalController extends Controller
     }
 
     public function uploadProcessJournalHistoryStatement() {}
+
+    public function saveIPPublik()
+    {
+        $rows = session('parsed_ip_sama', []);
+
+        foreach ($rows as $ip => $logs) {
+            foreach ($logs as $log) {
+                JournalIPPublik::create([
+                    'no_akun'                => $log['no_akun'],
+                    'tanggal'                => $log['tanggal'],
+                    'waktu'                  => $log['waktu'],
+                    'ip_address_publik'      => $ip,
+                    'filename'               => $log['file'],
+                    'raw_line'               => $log['raw'],
+                ]);
+            }
+        }
+
+        return back()->with('success', 'IP Publik Sama berhasil disimpan');
+    }
 
     public function saveMarket()
     {
@@ -258,7 +274,7 @@ class JournalController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Market Execution berhasil disimpan');
+        return redirect()->back()->with('success', 'Market Execution berhasil disimpan');
     }
 
     public function saveWrong()
@@ -282,7 +298,7 @@ class JournalController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Wrong Price berhasil disimpan');
+        return redirect()->back()->with('success', 'Wrong Price berhasil disimpan');
     }
 
     public function saveCredit()
@@ -305,7 +321,7 @@ class JournalController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Credit Facility berhasil disimpan');
+        return redirect()->back()->with('success', 'Credit Facility berhasil disimpan');
     }
 
     public function saveIPPerusahaan()
@@ -357,6 +373,26 @@ class JournalController extends Controller
     // =====================================================
     // ⭐ HELPER FUNCTIONS
     // =====================================================
+
+    private function isIgnoredIP(string $ip): bool
+    {
+        // IPv6 localhost
+        if ($ip === '::1') return true;
+
+        // Loopback IPv4
+        if ($ip === '127.0.0.1') return true;
+
+        // Private network ranges
+        if (
+            preg_match('/^10\./', $ip) ||
+            preg_match('/^192\.168\./', $ip) ||
+            preg_match('/^172\.(1[6-9]|2[0-9]|3[0-1])\./', $ip)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 
     private function cleanDuplicateIPPerFile(array $ipMap): array
     {
@@ -418,11 +454,18 @@ class JournalController extends Controller
                     continue;
                 }
 
+                // IP yang diabaikan
+                if ($this->isIgnoredIP($ip)) continue;
+
                 // Ambil NO AKUN dari message
                 $noAkun = null;
-                if (preg_match("/'(\d{5,6})'/", $message, $m)) {
+
+                // Ambil no akun dari format 5 karakter di dalam tanda kutip dan titik dua setelahnya ('xxxx':)
+                if (preg_match("/'(\d{5})'/", $message, $m)) {
                     $noAkun = $m[1];
                 }
+
+                if (!$noAkun) continue;
 
                 [$tanggal, $waktuFull] = explode(' ', $datetime);
                 $waktu = substr($waktuFull, 0, 8);
@@ -449,43 +492,30 @@ class JournalController extends Controller
         });
     }
 
-    private function parseIPPerusahaanFromHTML(string $html, array $ipPerusahaan): array
+    private function parseIPPerusahaanStream(string $filePath, array $ipPerusahaan): array
     {
-        libxml_use_internal_errors(true);
-
-        $dom = new \DOMDocument();
-        $dom->loadHTML($html);
-
-        $rows = $dom->getElementsByTagName('tr');
         $results = [];
+        $handle = fopen($filePath, 'r');
 
-        foreach ($rows as $row) {
-            $cols = $row->getElementsByTagName('td');
+        while (($line = fgets($handle)) !== false) {
 
-            if ($cols->length < 3) {
+            if (!preg_match('/<tr>.*?<\/tr>/i', $line)) {
                 continue;
             }
 
-            $time = trim($cols->item(0)->textContent);
-            $ip   = trim($cols->item(1)->textContent);
-            $msg  = trim($cols->item(2)->textContent);
+            preg_match_all('/<td>(.*?)<\/td>/i', $line, $cols);
 
-            // Skip baris tanpa IP
-            if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP)) {
-                continue;
-            }
+            if (count($cols[1]) < 3) continue;
 
-            // Cek IP perusahaan
-            if (!in_array($ip, $ipPerusahaan)) {
-                continue;
-            }
+            $time = strip_tags($cols[1][0]);
+            $ip   = strip_tags($cols[1][1]);
+            $msg  = strip_tags($cols[1][2]);
 
-            // Parse tanggal & waktu
-            if (!preg_match('/(\d{4}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})/', $time, $dt)) {
-                continue;
-            }
+            if (!filter_var($ip, FILTER_VALIDATE_IP)) continue;
+            if (!in_array($ip, $ipPerusahaan)) continue;
 
-            // Ambil no akun jika ada
+            if (!preg_match('/(\d{4}\.\d{2}\.\d{2}) (\d{2}:\d{2}:\d{2})/', $time, $dt)) continue;
+
             $noAkun = null;
             if (preg_match("/'(\d{5,})'/", $msg, $m)) {
                 $noAkun = $m[1];
@@ -493,13 +523,14 @@ class JournalController extends Controller
 
             $results[] = [
                 'tanggal' => \Carbon\Carbon::createFromFormat('Y.m.d', $dt[1])->toDateString(),
-                'waktu'   => $dt[2],
+                'waktu' => $dt[2],
                 'no_akun' => $noAkun,
-                'ip'      => $ip,
-                'raw'     => $msg,
+                'ip' => $ip,
+                'raw' => $msg,
             ];
         }
 
+        fclose($handle);
         return $results;
     }
 
@@ -516,7 +547,7 @@ class JournalController extends Controller
             \#(?<tiket>\d+)\s*-\s*
             (?<amount>-?\d+\.\d+)\s+
             for\s+\'(?<akun>\d+)\'\s*-\s*
-            (?<type>credit\s+in|credit\s+out)
+            (?<type>credit\s+in|credit\s+out|sm\s+in|sm\s+out)
         /ix';
 
         if (!preg_match($regex, $line, $m)) {
@@ -532,8 +563,8 @@ class JournalController extends Controller
             'ip_address' => $m['ip'],             // FULL IP FIXED ✅
             'no_akun'    => $m['akun'],
             'no_tiket'   => $m['tiket'],
-            'credit_in'  => $type === 'credit in'  ? abs($amount) : 0,
-            'credit_out' => $type === 'credit out' ? abs($amount) : 0,
+            'credit_in'  => $type === 'credit in' || $type === 'sm in' ? abs($amount) : 0,
+            'credit_out' => $type === 'credit out' || $type === 'sm out' ? abs($amount) : 0,
             'raw'        => $line,
         ];
     }
