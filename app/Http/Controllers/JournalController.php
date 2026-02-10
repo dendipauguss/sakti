@@ -547,24 +547,25 @@ class JournalController extends Controller
             \#(?<tiket>\d+)\s*-\s*
             (?<amount>-?\d+\.\d+)\s+
             for\s+\'(?<akun>\d+)\'\s*-\s*
-             (?<type>\b[a-zA-Z_]+\s+(?:in|out)\b)
+            (?<action>[a-zA-Z_]+)\s+(?<direction>in|out)
         /ix';
 
         if (!preg_match($regex, $line, $m)) {
             return null;
         }
 
-        $amount = (float) $m['amount'];
-        $type   = strtolower($m['type']);
+        $amount = abs((float) $m['amount']);
+        $direction = strtolower($m['direction']);
 
         return [
             'tanggal'    => \Carbon\Carbon::createFromFormat('Y.m.d', $m['tanggal'])->toDateString(),
-            'waktu'      => $m['waktu'],          // 18:15:08
-            'ip_address' => $m['ip'],             // FULL IP FIXED ✅
+            'waktu'      => $m['waktu'],
+            'ip_address' => $m['ip'],
             'no_akun'    => $m['akun'],
             'no_tiket'   => $m['tiket'],
-            'credit_in'  => $type === 'credit in' || $type === 'sm in' ? abs($amount) : 0,
-            'credit_out' => $type === 'credit out' || $type === 'sm out' ? abs($amount) : 0,
+            'credit_in'  => $direction === 'in'  ? $amount : 0,
+            'credit_out' => $direction === 'out' ? $amount : 0,
+            'action'     => strtolower($m['action']), // credit / sm / moc / dll
             'raw'        => $line,
         ];
     }

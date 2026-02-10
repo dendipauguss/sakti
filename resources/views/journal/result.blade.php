@@ -119,6 +119,7 @@
                                             <th>Nomor Tiket</th>
                                             <th>Credit In</th>
                                             <th>Credit Out</th>
+                                            <th>Aksi</th>
                                             <th>Baris Log</th>
                                         </tr>
                                     </thead>
@@ -133,6 +134,7 @@
                                                 <td>{{ $line['no_tiket'] }}</td>
                                                 <td>{{ $line['credit_in'] }}</td>
                                                 <td>{{ $line['credit_out'] }}</td>
+                                                <td>{{ $line['action'] }}</td>
                                                 <td>{{ $line['raw'] }}</td>
                                             </tr>
                                         @endforeach
