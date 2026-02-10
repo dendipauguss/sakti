@@ -27,8 +27,8 @@
                                         <td>{{ $cf->no_tiket }}</td>
                                         <td>{{ $cf->waktu }}</td>
                                         <td>{{ $cf->ip_address }}</td>
-                                        <td>Rp. {{ $cf->credit_in }}</td>
-                                        <td>Rp. {{ $cf->credit_out }}</td>
+                                        <td>{{ $cf->credit_in }}</td>
+                                        <td>{{ $cf->credit_out }}</td>
                                         <td>{{ $cf->raw_line }}</td>
                                     </tr>
                                 @endforeach
