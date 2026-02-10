@@ -547,7 +547,7 @@ class JournalController extends Controller
             \#(?<tiket>\d+)\s*-\s*
             (?<amount>-?\d+\.\d+)\s+
             for\s+\'(?<akun>\d+)\'\s*-\s*
-            (?<type>credit\s+in|credit\s+out|sm\s+in|sm\s+out)
+             (?<type>\b[a-zA-Z_]+\s+(?:in|out)\b)
         /ix';
 
         if (!preg_match($regex, $line, $m)) {
