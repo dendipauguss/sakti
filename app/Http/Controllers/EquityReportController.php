@@ -19,7 +19,8 @@ class EquityReportController extends Controller
         return view('equity.index', [
             'title' => 'Dashboard Equity',
             'breadcrumbs' => $breadcrumbs,
-            'equity_report' => EquityReport::all()
+            'equity_report' => EquityReport::all(),
+            'equity_comparisons' => EquityComparison::all(),
         ]);
     }
 
@@ -30,9 +31,21 @@ class EquityReportController extends Controller
         //
     }
 
-    public function show(EquityReport $equityReport)
+    public function show($equity_report_id)
     {
-        //
+        $equityComparisons = EquityComparison::with('equityReport')->where('equity_upload_id', $equity_report_id)->get();
+
+        $breadcrumbs = [
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Equity Report', 'url' => route('equity.index')],
+            ['label' => 'Detail Report']
+        ];
+
+        return view('equity.show', [
+            'title' => 'Detail Equity Report',
+            'breadcrumbs' => $breadcrumbs,
+            'comparisons' => $equityComparisons,
+        ]);
     }
 
     public function edit(EquityReport $equityReport)
@@ -95,7 +108,6 @@ class EquityReportController extends Controller
             $equity2 = $parsed1['rows'];
         }
 
-
         // ==================================================
         // 3️⃣ SIMPAN METADATA UPLOAD (OPSIONAL)
         // ==================================================
@@ -128,6 +140,12 @@ class EquityReportController extends Controller
 
             $floating_pl1 = $row1['floating_pl'] ?? null;
             $floating_pl2 = $row2['floating_pl'] ?? null;
+
+            $deposit_1 = $row1['deposit'] ?? null;
+            $deposit_2 = $row2['deposit'] ?? null;
+
+            $credit_1 = $row1['credit'] ?? null;
+            $credit_2 = $row2['credit'] ?? null;
 
             // 🔴 SKIP jika tidak lengkap
             if ($val1 === null || $val2 === null) {
@@ -164,15 +182,19 @@ class EquityReportController extends Controller
             $comparison[] = [
                 'login'        => $login,
                 'name'         => $row1['name'] ?? $row2['name'] ?? '-',
+                'deposit_1'      => $deposit_1,
+                'deposit_2'      => $deposit_2,
+                'credit_1'      => $credit_1,
+                'credit_2'      => $credit_2,
                 'currency'   => $row1['currency'] ?? $row2['currency'] ?? '-',
-                'equity_file1' => $val1,
-                'equity_file2' => $val2,
+                'equity_1' => $val1,
+                'equity_2' => $val2,
                 'periode_1'    => $periode_1,
                 'periode_2'    => $periode_2,
                 'floating_pl1' => $floating_pl1,
                 'floating_pl2' => $floating_pl2,
                 'selisih'      => $val2 - $val1,
-                'status'       => $status,
+                'status'       => $status
             ];
         }
 
@@ -184,7 +206,11 @@ class EquityReportController extends Controller
         });
 
         session([
-            'parsed_equity' => $comparison
+            'parsed_equity' => $comparison,
+            'file_1_name' => $file1->getClientOriginalName(),
+            'file_2_name' => $file2->getClientOriginalName(),
+            'periode_1' => $parsed1['from_date'] ?? null,
+            'periode_2' => $parsed2['from_date'] ?? null,
         ]);
 
         $breadcrumbs = [
@@ -203,30 +229,38 @@ class EquityReportController extends Controller
     public function saveComparison()
     {
         $rows = session('parsed_equity', []);
+        $file_1_name = session('file_1_name');
+        $file_2_name = session('file_2_name');
+        $periode_1 = session('periode_1', null);
+        $periode_2 = session('periode_2', null);
 
         $upload = EquityReport::create([
-            'file_1_name' => 'equity_report_1' . now()->format('Ymd_His'),
-            'file_2_name' => 'equity_report_2' . now()->format('Ymd_His'),
-            'periode_1' => now()->format('Y'),
+            'file_1_name' => $file_1_name,
+            'file_2_name' => $file_2_name,
+            'periode_1' => $periode_1,
+            'periode_2' => $periode_2,
         ]);
 
         foreach ($rows as $row) {
             EquityComparison::create([
                 'equity_upload_id' => $upload->id,
-                'no_akun'           => $row['no_akun'],
-                'no_tiket'          => $row['no_tiket'],
-                'tanggal'           => Carbon::createFromFormat('Y.m.d', $row['tanggal'])->toDateString(),
-                'request_time'      => $row['request_time'],
-                'confirm_time'      => $row['confirm_time'],
-                'delay_microseconds' => $row['diff_microseconds'],
-                'delay_seconds'     => $row['delay_seconds'],
-                'delay_formatted'   => $row['delay_formatted'],
-                'request_raw'       => $row['request_raw'],
-                'confirm_raw'       => $row['confirm_raw'],
+                'login'           => $row['login'],
+                'name'            => $row['name'],
+                'equity_old'       => $row['equity_1'],
+                'equity_new'       => $row['equity_2'],
+                'floating_pl_old'  => $row['floating_pl1'] ?? null,
+                'floating_pl_new'  => $row['floating_pl2'] ?? null,
+                'credit_old'       => $row['credit_1'] ?? null,
+                'credit_new'       => $row['credit_2'] ?? null,
+                'deposit_old'      => $row['deposit_1'] ?? null,
+                'deposit_new'      => $row['deposit_2'] ?? null,
+                'selisih'          => $row['selisih'],
+                'satuan'         => $row['currency'],
+                'status'           => $row['status'],
             ]);
         }
 
-        return back()->with('success', 'Market Execution berhasil disimpan');
+        return back()->with('success', 'Perbandingan Equity berhasil disimpan');
     }
 
     private function mergeEquityReports(array $reportA, array $reportB): array
@@ -245,59 +279,6 @@ class EquityReportController extends Controller
         }
 
         return $result;
-    }
-
-    private function normalizeHeader(string $text): string
-    {
-        $text = strtolower(trim($text));
-        $text = str_replace(['/', ' '], '_', $text);
-        $text = preg_replace('/_+/', '_', $text);
-
-        return match ($text) {
-            'login' => 'login',
-            'name', 'group' => 'name',
-            'deposit' => 'deposit',
-            'credit' => 'credit',
-            'commission' => 'commission',
-            'swap' => 'swap',
-            'profit' => 'profit',
-            'interest' => 'interest',
-            'balance' => 'balance',
-            'floating_pl', 'floating_p_l' => 'floating_pl',
-            'equity' => 'equity',
-            'margin' => 'margin',
-            'free_margin' => 'free_margin',
-            'currency', 'bank' => 'currency',
-            'pl_balance' => 'pl_balance',
-            'closed_pl' => 'closed_pl',
-            default => ''
-        };
-    }
-
-    private function parseNumber($value): ?float
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        // Trim + normalisasi spasi (termasuk &nbsp;)
-        $value = trim($value);
-        $value = str_replace(["\xc2\xa0", ' '], '', $value);
-
-        // Handle format (49.61) => -49.61
-        if (preg_match('/^\(([\d.]+)\)$/', $value, $m)) {
-            return -(float) $m[1];
-        }
-
-        // Hapus tanda + jika ada
-        $value = ltrim($value, '+');
-
-        // Validasi angka (negatif & desimal)
-        if (!is_numeric($value)) {
-            return null;
-        }
-
-        return (float) $value;
     }
 
     private function parseEquityReport(string $html): array
@@ -380,7 +361,9 @@ class EquityReportController extends Controller
             $loginIndex = $headerMap['login'];
             $login = trim($cells->item($loginIndex)->textContent);
 
-            if (!is_numeric($login)) continue;
+            if (!preg_match('/^\d{7,9}$/', $login)) {
+                continue;
+            }
 
             $get = function ($key) use ($cells, $headerMap) {
                 if (!isset($headerMap[$key])) return null;
@@ -411,6 +394,59 @@ class EquityReportController extends Controller
         }
 
         return $data;
+    }
+
+    private function normalizeHeader(string $text): string
+    {
+        $text = strtolower(trim($text));
+        $text = str_replace(['/', ' '], '_', $text);
+        $text = preg_replace('/_+/', '_', $text);
+
+        return match ($text) {
+            'login' => 'login',
+            'name', 'group' => 'name',
+            'deposit' => 'deposit',
+            'credit' => 'credit',
+            'commission' => 'commission',
+            'swap' => 'swap',
+            'profit' => 'profit',
+            'interest' => 'interest',
+            'balance' => 'balance',
+            'floating_pl', 'floating_p_l' => 'floating_pl',
+            'equity' => 'equity',
+            'margin' => 'margin',
+            'free_margin' => 'free_margin',
+            'currency', 'bank' => 'currency',
+            'pl_balance' => 'pl_balance',
+            'closed_pl' => 'closed_pl',
+            default => ''
+        };
+    }
+
+    private function parseNumber($value): ?float
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        // Trim + normalisasi spasi (termasuk &nbsp;)
+        $value = trim($value);
+        $value = str_replace(["\xc2\xa0", ' '], '', $value);
+
+        // Handle format (49.61) => -49.61
+        if (preg_match('/^\(([\d.]+)\)$/', $value, $m)) {
+            return -(float) $m[1];
+        }
+
+        // Hapus tanda + jika ada
+        $value = ltrim($value, '+');
+
+        // Validasi angka (negatif & desimal)
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        return (float) $value;
     }
 
     private function parseEquityLine(string $line): ?array

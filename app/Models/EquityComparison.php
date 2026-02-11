@@ -12,4 +12,9 @@ class EquityComparison extends Model
     protected $table = 'equity_comparisons';
 
     protected $guarded = ['id'];
+
+    public function equityReport()
+    {
+        return $this->belongsTo(EquityReport::class);
+    }
 }

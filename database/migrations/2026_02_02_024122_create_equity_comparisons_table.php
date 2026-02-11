@@ -16,15 +16,17 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('login', 20);
-
-            $table->decimal('equity_file_1', 18, 2)->nullable();
-            $table->decimal('equity_file_2', 18, 2)->nullable();
-
+            $table->string('name')->nullable();
             $table->decimal('equity_old', 15, 2)->nullable();
             $table->decimal('equity_new', 15, 2)->nullable();
-
+            $table->decimal('floating_pl_old', 15, 2)->nullable();
+            $table->decimal('floating_pl_new', 15, 2)->nullable();
+            $table->decimal('credit_old', 15, 2)->nullable();
+            $table->decimal('credit_new', 15, 2)->nullable();
+            $table->decimal('deposit_old', 15, 2)->nullable();
+            $table->decimal('deposit_new', 15, 2)->nullable();
             $table->decimal('selisih', 18, 2)->nullable();
-
+            $table->string('satuan')->nullable();
             $table->enum('status', [
                 'SAMA',
                 'NAIK',
