@@ -30,8 +30,8 @@
                                             <th>Deposit 2</th>
                                             <th>Credit 1</th>
                                             <th>Credit 2</th>
-                                            <th>Equity File 1</th>
-                                            <th>Equity File 2</th>
+                                            <th>Equity 1</th>
+                                            <th>Equity 2</th>
                                             <th>Floating PL 1</th>
                                             <th>Floating PL 2</th>
                                             <th>Selisih Nilai Equity</th>
